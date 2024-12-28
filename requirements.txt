@@ -16,3 +16,7 @@ python-dotenv==1.0.1
 
 # Data Generation (for Testing/Mock Data)
 faker==19.3.0
+
+# dbt
+dbt-core==1.8.9
+dbt-snowflake==1.9.0
