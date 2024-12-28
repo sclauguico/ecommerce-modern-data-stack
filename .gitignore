@@ -11,3 +11,4 @@ airflow.cfg
 airflow.db
 venv/
 img/
+de-ecommerce.png
