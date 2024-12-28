@@ -1,0 +1,28 @@
+[0m18:19:42.738405 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'start', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x00000277B3823C50>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x00000277B3823050>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x00000277B3820810>]}
+
+
+============================== 18:19:42.742770 | 4fe6ea72-0d17-4a9e-9ec2-5a5278889e0a ==============================
+[0m18:19:42.742770 [info ] [MainThread]: Running with dbt=1.8.9
+[0m18:19:42.743386 [debug] [MainThread]: running dbt with arguments {'printer_width': '80', 'indirect_selection': 'eager', 'write_json': 'True', 'log_cache_events': 'False', 'partial_parse': 'True', 'cache_selected_only': 'False', 'profiles_dir': 'C:\\Users\\Sandy Lauguico\\.dbt', 'fail_fast': 'False', 'debug': 'False', 'log_path': 'logs', 'version_check': 'True', 'warn_error': 'None', 'use_colors': 'True', 'use_experimental_parser': 'False', 'empty': 'None', 'quiet': 'False', 'no_print': 'None', 'warn_error_options': 'WarnErrorOptions(include=[], exclude=[])', 'static_parser': 'True', 'introspect': 'True', 'log_format': 'default', 'target_path': 'None', 'invocation_command': 'dbt init', 'send_anonymous_usage_stats': 'True'}
+[0m18:28:29.828157 [debug] [MainThread]: Starter project path: C:\Users\Sandy Lauguico\Documents\01-learn-in-public\product\ecommerce-modern-data-stack\venv\Lib\site-packages\dbt\include\starter_project
+[0m18:28:29.923648 [info ] [MainThread]: 
+Your new dbt project "ecom_data_model" was created!
+
+For more information on how to configure the profiles.yml file,
+please consult the dbt documentation here:
+
+  https://docs.getdbt.com/docs/configure-your-profile
+
+One more thing:
+
+Need help? Don't hesitate to reach out to us via GitHub issues or on Slack:
+
+  https://community.getdbt.com/
+
+Happy modeling!
+
+[0m18:28:29.924968 [info ] [MainThread]: Setting up your profile.
+[0m18:36:50.312660 [info ] [MainThread]: Profile ecom_data_model written to C:\Users\Sandy Lauguico\.dbt\profiles.yml using target's profile_template.yml and your supplied values. Run 'dbt debug' to validate the connection.
+[0m18:36:50.315087 [debug] [MainThread]: Command `dbt init` succeeded at 18:36:50.315087 after 1027.67 seconds
+[0m18:36:50.315087 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'end', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x00000277AD24C510>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x00000277AD31FB90>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x00000277AD5ADD90>]}
+[0m18:36:50.316294 [debug] [MainThread]: Flushing usage events
