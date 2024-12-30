@@ -31,6 +31,9 @@ clean-targets:         # directories to be removed by `dbt clean`
 # files using the `{{ config(...) }}` macro.
 models:
   ecom_data_model:
-    # Config indicated by + and applies to all files under models/example/
-    example:
+    ecom_staging:
       +materialized: view
+      snowflake_warehouse: ECOM_WH
+    ecom_intermediate:
+      +materialized: table
+      snowflake_warehouse: ECOM_WH
