@@ -6,7 +6,7 @@ WITH parsed_addresses AS (
         TRIM(SPLIT_PART(shipping_address, ',', -3)) AS city,
         TRIM(SPLIT_PART(shipping_address, ',', -2)) AS state,
         TRIM(SPLIT_PART(shipping_address, ',', -1)) AS country
-    FROM {{ source('staging', 'stg_orders') }}
+    FROM {{ source('ecom_staging', 'stg_orders') }}
     WHERE shipping_address IS NOT NULL
     
     UNION DISTINCT
@@ -18,7 +18,7 @@ WITH parsed_addresses AS (
         TRIM(SPLIT_PART(billing_address, ',', -3)) AS city,
         TRIM(SPLIT_PART(billing_address, ',', -2)) AS state,
         TRIM(SPLIT_PART(billing_address, ',', -1)) AS country
-    FROM {{ source('staging', 'stg_orders') }}
+    FROM {{ source('ecom_staging', 'stg_orders') }}
     WHERE billing_address IS NOT NULL
 ),
 

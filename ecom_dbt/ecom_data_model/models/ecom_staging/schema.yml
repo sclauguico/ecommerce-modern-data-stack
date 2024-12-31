@@ -1,8 +1,8 @@
 version: 2
 
 sources:
-  - name: raw
-    database: ecom_db
+  - name: ecom_raw
+    database: ECOM_DB
     schema: ecom_raw
     tables:
       - name: categories

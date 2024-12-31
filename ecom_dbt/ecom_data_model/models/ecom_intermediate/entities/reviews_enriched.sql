@@ -9,7 +9,7 @@ SELECT
     s.subcategory_name,
     b.brand_name,
     r.loaded_at AS created_at
-FROM {{ source('staging', 'stg_reviews') }} r
+FROM {{ source('ecom_staging', 'stg_reviews') }} r
 LEFT JOIN {{ ref('products_enriched') }} p ON r.product_id = p.product_id 
 LEFT JOIN {{ ref('categories_enriched') }} c ON p.category_id = c.category_id
 LEFT JOIN {{ ref('subcategories_enriched') }} s ON p.subcategory_id = s.subcategory_id

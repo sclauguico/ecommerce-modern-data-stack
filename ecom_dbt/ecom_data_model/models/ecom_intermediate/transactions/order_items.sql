@@ -6,7 +6,7 @@
 }}
 
 WITH order_items_base AS (
-   SELECT * FROM {{ source('staging', 'stg_order_items') }}
+   SELECT * FROM {{ source('ecom_staging', 'stg_order_items') }}
    WHERE product_id IS NOT NULL
 ),
 
@@ -33,7 +33,7 @@ reviews_deduped AS (
             PARTITION BY order_id, product_id 
             ORDER BY loaded_at DESC
         ) as review_score
-    FROM {{ source('staging', 'stg_reviews') }}
+    FROM {{ source('ecom_staging', 'stg_reviews') }}
 )
 
 SELECT DISTINCT
@@ -50,7 +50,7 @@ SELECT DISTINCT
   r.review_score,
   oi.created_at
 FROM validated_items oi
-LEFT JOIN {{ source('staging', 'stg_orders') }} o 
+LEFT JOIN {{ source('ecom_staging', 'stg_orders') }} o 
   USING (order_id)
 LEFT JOIN {{ ref('products_enriched') }} p 
   USING (product_id)

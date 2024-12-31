@@ -1,7 +1,7 @@
 WITH cleaned_brands AS (
     SELECT DISTINCT
         TRIM(brand) as brand_name
-    FROM {{ source('staging', 'stg_products') }}
+    FROM {{ source('ecom_staging', 'stg_products') }}
     WHERE brand IS NOT NULL
     AND TRIM(brand) != ''
 )

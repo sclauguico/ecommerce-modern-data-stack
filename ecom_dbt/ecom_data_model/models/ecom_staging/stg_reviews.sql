@@ -1,5 +1,5 @@
 WITH source AS (
-    SELECT * FROM {{ source('raw', 'reviews') }}
+    SELECT * FROM {{ source('ecom_raw', 'reviews') }}
 ),
 casted AS (
     SELECT

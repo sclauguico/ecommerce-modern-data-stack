@@ -3,7 +3,7 @@ WITH shipping_addresses AS (
         TRIM(SPLIT_PART(shipping_address, ',', -3)) AS city,
         TRIM(SPLIT_PART(shipping_address, ',', -2)) AS state,
         TRIM(SPLIT_PART(shipping_address, ',', -1)) AS country
-    FROM {{ source('staging', 'stg_orders') }}
+    FROM {{ source('ecom_staging', 'stg_orders') }}
     WHERE shipping_address IS NOT NULL
 ),
 
@@ -12,7 +12,7 @@ billing_addresses AS (
         TRIM(SPLIT_PART(billing_address, ',', -3)) AS city,
         TRIM(SPLIT_PART(billing_address, ',', -2)) AS state,
         TRIM(SPLIT_PART(billing_address, ',', -1)) AS country
-    FROM {{ source('staging', 'stg_orders') }}
+    FROM {{ source('ecom_staging', 'stg_orders') }}
     WHERE billing_address IS NOT NULL
 ),
 
@@ -21,7 +21,7 @@ customer_addresses AS (
         TRIM(city) as city,
         TRIM(state) as state,
         TRIM(country) as country
-    FROM {{ source('staging', 'stg_customers') }}
+    FROM {{ source('ecom_staging', 'stg_customers') }}
     WHERE city IS NOT NULL 
     AND state IS NOT NULL 
     AND country IS NOT NULL

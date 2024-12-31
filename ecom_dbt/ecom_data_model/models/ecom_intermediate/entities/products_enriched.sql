@@ -4,7 +4,7 @@ WITH product_orders AS (
         COUNT(DISTINCT order_id) AS total_orders,
         SUM(quantity) AS total_quantity_sold,
         SUM(total_price) AS total_revenue
-    FROM {{ source('staging', 'stg_order_items') }}
+    FROM {{ source('ecom_staging', 'stg_order_items') }}
     GROUP BY product_id
 ),
 
@@ -13,7 +13,7 @@ product_reviews AS (
         product_id,
         COUNT(*) AS review_count,
         AVG(review_score) AS avg_review_score
-    FROM {{ source('staging', 'stg_reviews') }}
+    FROM {{ source('ecom_staging', 'stg_reviews') }}
     GROUP BY product_id
 ),
 
@@ -21,7 +21,7 @@ all_brands AS (
     SELECT DISTINCT
         TRIM(brand) as brand_name,
         {{ dbt_utils.generate_surrogate_key(['TRIM(brand)']) }} as brand_id
-    FROM {{ source('staging', 'stg_products') }}
+    FROM {{ source('ecom_staging', 'stg_products') }}
     WHERE brand IS NOT NULL
     AND TRIM(brand) != ''
 )
@@ -44,14 +44,14 @@ SELECT
     COALESCE(pr.review_count, 0) AS review_count,
     pr.avg_review_score,
     p.created_at
-FROM {{ source('staging', 'stg_products') }} p
+FROM {{ source('ecom_staging', 'stg_products') }} p
 LEFT JOIN {{ ref('brands') }} b 
     ON TRIM(p.brand) = b.brand_name
 LEFT JOIN all_brands ab
     ON TRIM(p.brand) = ab.brand_name
-LEFT JOIN {{ source('staging', 'stg_categories') }} c 
+LEFT JOIN {{ source('ecom_staging', 'stg_categories') }} c 
     ON p.category_id = c.category_id
-LEFT JOIN {{ source('staging', 'stg_subcategories') }} s 
+LEFT JOIN {{ source('ecom_staging', 'stg_subcategories') }} s 
     ON p.category_id = s.category_id 
     AND p.subcategory_id = s.subcategory_id
 LEFT JOIN product_orders po 

@@ -37,3 +37,6 @@ models:
     ecom_intermediate:
       +materialized: table
       snowflake_warehouse: ECOM_WH
+    ecom_marts:
+      +tags: ["marts"]
+      snowflake_warehouse: ECOM_WH

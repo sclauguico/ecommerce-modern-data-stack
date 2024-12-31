@@ -1,9 +1,9 @@
 version: 2
 
 sources:
-  - name: staging
+  - name: ecom_staging
     database: ECOM_DB
-    schema: ECOM_STAGING
+    schema: ecom_staging
     tables:
       - name: stg_customers
       - name: stg_orders

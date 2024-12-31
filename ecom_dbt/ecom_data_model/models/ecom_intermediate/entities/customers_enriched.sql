@@ -5,7 +5,7 @@ WITH customer_orders AS (
         SUM(total_amount) AS total_spent,
         MIN(order_date) AS first_order_date,
         MAX(order_date) AS last_order_date
-    FROM {{ source('staging', 'stg_orders') }}
+    FROM {{ source('ecom_staging', 'stg_orders') }}
     GROUP BY 1
 ),
 
@@ -14,7 +14,7 @@ validated_customers AS (
         TRIM(city) as cleaned_city,
         TRIM(state) as cleaned_state,
         TRIM(country) as cleaned_country
-    FROM {{ source('staging', 'stg_customers') }}
+    FROM {{ source('ecom_staging', 'stg_customers') }}
     WHERE city IS NOT NULL
     AND state IS NOT NULL
     AND country IS NOT NULL

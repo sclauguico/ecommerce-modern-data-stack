@@ -9,6 +9,6 @@ SELECT
     i.device_type,
     i.session_id,
     i.created_at
-FROM {{ source('staging', 'stg_interactions') }} i
-LEFT JOIN {{ source('staging', 'stg_products') }} p 
+FROM {{ source('ecom_staging', 'stg_interactions') }} i
+LEFT JOIN {{ source('ecom_staging', 'stg_products') }} p 
     USING (product_id)
