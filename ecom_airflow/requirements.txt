@@ -4,3 +4,10 @@ astronomer-cosmos
 apache-airflow-providers-snowflake
 apache-airflow-providers-postgres
 apache-airflow-providers-amazon
+faker==19.3.0
+boto3==1.35.77
+psycopg2-binary==2.9.10
+python-dotenv==1.0.1
+SQLAlchemy
+pyarrow==18.1.0
+snowflake-connector-python==3.12.4
