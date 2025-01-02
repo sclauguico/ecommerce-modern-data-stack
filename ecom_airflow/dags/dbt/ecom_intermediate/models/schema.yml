@@ -1,0 +1,246 @@
+version: 2
+
+sources:
+  - name: ecom_staging
+    database: ECOM_DB
+    schema: ecom_staging
+    tables:
+      - name: stg_customers
+      - name: stg_orders
+      - name: stg_products
+      - name: stg_categories
+      - name: stg_order_items
+      - name: stg_interactions
+      - name: stg_reviews
+      - name: stg_subcategories
+
+models:
+  - name: locations
+    description: Normalized dimension table for all locations
+    columns:
+      - name: location_id
+        description: Surrogate key for location
+        tests:
+          - unique
+          - not_null
+      - name: city
+        tests:
+          - not_null
+      - name: state
+        tests:
+          - not_null
+      - name: country
+        tests:
+          - not_null
+    
+  - name: brands
+    description: Normalized dimension table for product brands
+    columns:
+      - name: brand_id
+        description: Surrogate key for brand
+        tests:
+          - unique
+          - not_null
+      - name: brand_name
+        description: Name of the brand
+        tests:
+          - not_null
+
+  - name: education_types
+    description: Normalized dimension table for education types
+    columns:
+      - name: education_id
+        description: Surrogate key for education type
+        tests:
+          - unique
+          - not_null
+      - name: education_type
+        description: Type of education
+        tests:
+          - not_null
+
+  - name: marital_statuses
+    description: Normalized dimension table for marital statuses
+    columns:
+      - name: marital_status_id
+        description: Surrogate key for marital status
+        tests:
+          - unique
+          - not_null
+      - name: status_type
+        description: Type of marital status
+        tests:
+          - not_null
+
+  - name: order_statuses
+    description: Normalized dimension table for order statuses
+    columns:
+      - name: status_id
+        description: Surrogate key for order status
+        tests:
+          - unique
+          - not_null
+      - name: status_name
+        description: Name of the order status
+        tests:
+          - not_null
+
+  - name: payment_methods
+    description: Normalized dimension table for payment methods
+    columns:
+      - name: payment_method_id
+        description: Surrogate key for payment method
+        tests:
+          - unique
+          - not_null
+      - name: method_name
+        description: Name of the payment method
+        tests:
+          - not_null
+
+  - name: addresses
+    description: Normalized dimension table for all addresses
+    columns:
+      - name: address_id
+        description: Surrogate key for address
+        tests:
+          - unique
+          - not_null
+      - name: location_id
+        description: Foreign key to locations
+        tests:
+          - relationships:
+              to: ref('locations')
+              field: location_id
+
+  - name: customers_enriched
+    description: Enriched customer dimension with related attributes and metrics
+    columns:
+      - name: customer_id
+        description: Natural key for customer
+        tests:
+          - unique
+          - not_null
+      - name: education_id
+        tests:
+          - relationships:
+              to: ref('education_types')
+              field: education_id
+      - name: location_id
+        tests:
+          - relationships:
+              to: ref('locations')
+              field: location_id
+
+  - name: products_enriched
+    description: Enriched product dimension with related attributes and metrics
+    columns:
+      - name: product_id
+        description: Natural key for product
+        tests:
+          - unique
+          - not_null
+      - name: category_id
+        tests:
+          - relationships:
+              to: ref('categories_enriched')
+              field: category_id
+      - name: brand_id
+        tests:
+          - relationships:
+              to: ref('brands')
+              field: brand_id
+
+  - name: orders
+    description: Order fact table with related dimensions
+    columns:
+      - name: order_id
+        description: Natural key for order
+        tests:
+          - unique
+          - not_null
+      - name: customer_id
+        tests:
+          - relationships:
+              to: ref('customers_enriched')
+              field: customer_id
+      - name: status_id
+        tests:
+          - relationships:
+              to: ref('order_statuses')
+              field: status_id
+
+  - name: order_items
+    description: Order items fact table with related dimensions
+    columns:
+      - name: order_item_id
+        description: Natural key for order item
+        tests:
+          - unique
+          - not_null
+      - name: order_id
+        tests:
+          - relationships:
+              to: ref('orders')
+              field: order_id
+      - name: product_id
+        tests:
+          - relationships:
+              to: ref('products_enriched')
+              field: product_id
+              severity: warn
+
+  - name: customer_interactions
+    description: Customer interaction events fact table
+    columns:
+      - name: event_id
+        description: Natural key for interaction event
+        tests:
+          - unique
+          - not_null
+      - name: customer_id
+        tests:
+          - relationships:
+              to: ref('customers_enriched')
+              field: customer_id
+      - name: product_id
+        tests:
+          - relationships:
+              to: ref('products_enriched')
+              field: product_id
+
+  - name: subcategories_enriched
+    description: Enriched subcategory dimension with related metrics
+    columns:
+      - name: subcategory_id
+        description: Natural key for subcategory
+        tests:
+          - unique
+          - not_null
+      - name: category_id
+        tests:
+          - relationships:
+              to: ref('categories_enriched')
+              field: category_id
+
+  - name: reviews_enriched
+    description: Enriched review facts with related dimensions
+    columns:
+      - name: customer_id
+        description: Foreign key to customers
+        tests:
+          - relationships:
+              to: ref('customers_enriched')
+              field: customer_id
+      - name: product_id
+        description: Foreign key to products
+        tests:
+          - relationships:
+              to: ref('products_enriched')
+              field: product_id
+      - name: order_id
+        description: Foreign key to orders
+        tests:
+          - relationships:
+              to: ref('orders')
+              field: order_id

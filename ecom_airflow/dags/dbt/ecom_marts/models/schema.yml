@@ -1,0 +1,241 @@
+version: 2
+
+sources:
+  - name: ecom_intermediate
+    database: ECOM_DB
+    schema: ecom_intermediate
+    tables:
+      - name: addresses
+      - name: brands
+      - name: categories_enriched
+      - name: subcategories_enriched
+      - name: reviews_enriched
+      - name: customers_enriched
+      - name: customer_interactions
+      - name: education_types
+      - name: locations
+      - name: marital_statuses
+      - name: orders
+      - name: order_items
+      - name: order_statuses
+      - name: payment_methods
+      - name: products_enriched
+
+models:
+  - name: dim_dates
+    description: Date dimension for time-based analysis
+    config:
+      materialized: view
+      tags: ['marts', 'core', 'dimension']
+    columns:
+      - name: date_day
+        description: Primary key - calendar date
+        tests:
+          - unique
+          - not_null
+
+  - name: dim_categories
+    description: Product category hierarchy
+    config:
+      materialized: view
+      tags: ['marts', 'core', 'dimension']
+    columns:
+      - name: category_id
+        description: Primary key
+        tests:
+          - unique
+          - not_null
+
+  - name: dim_products
+    description: Denormalized product dimension with all attributes and metrics
+    config:
+      materialized: view
+      tags: ['marts', 'core', 'dimension']
+    columns:
+      - name: product_id
+        description: Primary key
+        tests:
+          - unique
+          - not_null
+
+  - name: dim_customers
+    description: Denormalized customer dimension with all attributes and metrics
+    config:
+      materialized: view
+      tags: ['marts', 'core', 'dimension']
+    columns:
+      - name: customer_id
+        description: Primary key
+        tests:
+          - unique
+          - not_null
+      - name: total_orders
+        description: Total number of orders placed
+        tests:
+          - not_null
+      - name: customer_status
+        description: Derived customer status based on last order date
+        tests:
+          - not_null
+
+  - name: fct_customer_activity
+    description: Monthly customer activity metrics
+    config:
+      materialized: table
+      unique_key: ['customer_id', 'activity_month']
+      tags: ['marts', 'customer', 'fact']
+    columns:
+      - name: customer_id
+        description: Customer identifier
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_customers')
+              field: customer_id
+      - name: activity_month
+        description: Month of activity
+        tests:
+          - not_null
+
+  - name: fct_order_details
+    description: Detailed order fact table with denormalized customer and product info
+    config:
+      materialized: table
+      unique_key: 'order_id'
+      tags: ['marts', 'sales', 'fact']
+    columns:
+      - name: order_id
+        description: Primary key
+        tests:
+          - not_null
+      - name: order_date
+        description: Date of order
+        tests:
+          - not_null
+      - name: customer_id
+        tests:
+          - relationships:
+              to: ref('dim_customers')
+              field: customer_id
+      - name: product_id
+        tests:
+          - relationships:
+              to: ref('dim_products')
+              field: product_id
+
+  - name: fct_sales_by_date
+    description: Daily sales aggregations
+    config:
+      materialized: table
+      tags: ['marts', 'sales', 'fact']
+    columns:
+      - name: sale_date
+        description: Primary key - date of sale
+        tests:
+          - unique
+          - not_null
+      - name: total_revenue
+        description: Total revenue for the day
+        tests:
+          - not_null
+      - name: total_orders
+        description: Total number of orders for the day
+        tests:
+          - not_null
+
+  - name: fct_sales_by_product
+    description: Product sales metrics and performance
+    config:
+      materialized: table
+      unique_key: ['product_id']
+      tags: ['marts', 'sales', 'fact']
+    columns:
+      - name: product_id
+        description: Product identifier
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_products')
+              field: product_id
+
+  - name: fct_sales_by_region
+    description: Regional sales performance
+    config:
+      materialized: table
+      unique_key: ['state', 'country']
+      tags: ['marts', 'sales', 'fact']
+    columns:
+      - name: state
+        description: State/province
+        tests:
+          - not_null
+      - name: country
+        description: Country
+        tests:
+          - not_null
+
+  - name: fct_customer_orders
+    description: Customer order history and metrics
+    config:
+      materialized: table
+      unique_key: ['customer_id']
+      tags: ['marts', 'customer', 'fact']
+    columns:
+      - name: customer_id
+        description: Customer identifier
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_customers')
+              field: customer_id
+
+  - name: fct_customer_reviews
+    description: Customer review analysis
+    config:
+      materialized: table
+      unique_key: ['customer_id', 'product_id', 'order_id']
+      tags: ['marts', 'customer', 'fact']
+    columns:
+      - name: customer_id
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_customers')
+              field: customer_id
+      - name: product_id
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_products')
+              field: product_id
+      - name: order_id
+        tests:
+          - not_null
+
+  - name: fct_product_performance
+    description: Product performance metrics
+    config:
+      materialized: table
+      unique_key: ['product_id']
+      tags: ['marts', 'product', 'fact']
+    columns:
+      - name: product_id
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_products')
+              field: product_id
+
+  - name: fct_product_interactions
+    description: Product engagement metrics (views, cart adds, etc.)
+    config:
+      materialized: table
+      unique_key: ['product_id', 'event_day']
+      tags: ['marts', 'product', 'fact']
+    columns:
+      - name: product_id
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_products')
+              field: product_id

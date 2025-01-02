@@ -11,6 +11,8 @@ services:
       - "5433:5432"
     volumes:
       - postgres_db_source_data:/var/lib/postgresql/data
+    networks:
+      - ecommerce-modern-data-stack_4b35e1_airflow
 
   pgadmin:
     container_name: pgadmin4_cont
@@ -21,6 +23,12 @@ services:
       PGADMIN_DEFAULT_PASSWORD: root
     ports:
       - "5050:80"
+    networks:
+      - ecommerce-modern-data-stack_4b35e1_airflow
 
 volumes:
   postgres_db_source_data:
+
+networks:
+  ecommerce-modern-data-stack_4b35e1_airflow:
+    external: true
