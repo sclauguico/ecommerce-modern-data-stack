@@ -434,8 +434,8 @@ class RecentEcommerceDataGenerator:
     
 class EcommerceDataLoader:
     def __init__(self, aws_access_key_id, aws_secret_access_key, bucket_name, 
-                 pg_host='localhost', pg_port=5432, pg_user='postgres', 
-                 pg_password='postgres', pg_database='ecommerce'):
+                 pg_host, pg_port, pg_user, 
+                 pg_password, pg_database):
         """Initialize connections to S3 and PostgreSQL"""
         # S3 client setup
         self.s3_client = boto3.client(
