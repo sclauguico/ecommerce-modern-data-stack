@@ -61,7 +61,7 @@ generate_data_task = PythonOperator(
 )
 
 ingest_etl_task = PythonOperator(
-    task_id='process_etl',
+    task_id='ingest_etl',
     python_callable=ingest_etl,
     provide_context=True,
     dag=dag,
