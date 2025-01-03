@@ -256,7 +256,7 @@ class EcommerceDataGenerator:
                 
                 product = products_df.sample(n=1).iloc[0]
                 
-                event_type = random.choice(['view', 'cart_add', 'cart_remove', 'wishlist_add', 'search'])
+                event_type = random.choice(['view', 'cart_add', 'cart_remove', 'wishlist_add', 'search', 'purchase'])
                 
                 events.append({
                     'event_id': len(events) + 1,
