@@ -325,7 +325,11 @@ class RecentEcommerceDataGenerator:
                     'event_id': len(events) + 1 + self.id_offset,
                     'customer_id': customer['customer_id'],
                     'product_id': product['product_id'],
+<<<<<<< HEAD
                     'event_type': random.choice(['view', 'cart_add', 'cart_remove', 'wishlist_add', 'search', 'purchase']),
+=======
+                    'event_type': random.choice(['view', 'cart_add', 'cart_remove', 'wishlist_add', 'search', 'product']),
+>>>>>>> d6feb29dad005638739ca48ae9d1fec5356efcd8
                     'event_date': event_date,
                     'device_type': random.choice(['desktop', 'mobile', 'tablet']),
                     'session_id': f"session_{random.randint(10000, 99999)}",
