@@ -1,4 +1,5 @@
 SELECT
+    r.review_id,
     r.product_id,
     r.order_id,
     r.customer_id,

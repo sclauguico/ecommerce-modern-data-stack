@@ -3,6 +3,7 @@ WITH source AS (
 ),
 casted AS (
     SELECT
+        CAST(review_id AS VARCHAR) as review_id,
         CAST(product_id AS VARCHAR) as product_id,
         CAST(order_id AS VARCHAR) as order_id,
         CAST(customer_id AS VARCHAR) as customer_id,
