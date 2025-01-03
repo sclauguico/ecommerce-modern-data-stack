@@ -1,0 +1,14 @@
+[0m12:39:43.908636 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'start', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x000001EFB94B8250>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x000001EFB94ED410>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x000001EFB94EC050>]}
+
+
+============================== 12:39:43.915220 | 540d9df5-4f21-49d8-b60c-e1341cd08f6f ==============================
+[0m12:39:43.915220 [info ] [MainThread]: Running with dbt=1.8.9
+[0m12:39:43.915220 [debug] [MainThread]: running dbt with arguments {'printer_width': '80', 'indirect_selection': 'eager', 'log_cache_events': 'False', 'write_json': 'True', 'partial_parse': 'True', 'cache_selected_only': 'False', 'warn_error': 'None', 'version_check': 'True', 'profiles_dir': 'C:\\Users\\Sandy Lauguico\\.dbt', 'log_path': 'logs', 'debug': 'False', 'fail_fast': 'False', 'use_colors': 'True', 'use_experimental_parser': 'False', 'no_print': 'None', 'quiet': 'False', 'empty': 'False', 'warn_error_options': 'WarnErrorOptions(include=[], exclude=[])', 'introspect': 'True', 'invocation_command': 'dbt run --select models/ecom_marts/', 'static_parser': 'True', 'target_path': 'None', 'log_format': 'default', 'send_anonymous_usage_stats': 'True'}
+[0m12:39:43.916381 [error] [MainThread]: Encountered an error:
+Runtime Error
+  No dbt_project.yml found at expected path C:\Users\Sandy Lauguico\Documents\01-learn-in-public\product\ecommerce-modern-data-stack\dbt_project.yml
+  Verify that each entry within packages.yml (and their transitive dependencies) contains a file named dbt_project.yml
+  
+[0m12:39:43.917385 [debug] [MainThread]: Command `dbt run` failed at 12:39:43.917385 after 0.11 seconds
+[0m12:39:43.917385 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'end', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x000001EFB94FC0D0>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x000001EFB2FDD090>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x000001EFB94FB490>]}
+[0m12:39:43.917385 [debug] [MainThread]: Flushing usage events

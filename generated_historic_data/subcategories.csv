@@ -1,0 +1,26 @@
+subcategory_id,category_id,subcategory_name,created_at
+101,1,Smartphones,2023-01-01
+102,1,Laptops,2023-01-01
+103,1,Accessories,2023-01-01
+104,1,Tablets,2023-01-01
+105,1,Wearables,2023-01-01
+201,2,Men's Clothing,2023-01-01
+202,2,Women's Clothing,2023-01-01
+203,2,Children's Clothing,2023-01-01
+204,2,Shoes,2023-01-01
+205,2,Accessories,2023-01-01
+301,3,Furniture,2023-01-01
+302,3,Kitchen,2023-01-01
+303,3,Decor,2023-01-01
+304,3,Bedding,2023-01-01
+305,3,Storage,2023-01-01
+401,4,Skincare,2023-01-01
+402,4,Makeup,2023-01-01
+403,4,Haircare,2023-01-01
+404,4,Fragrances,2023-01-01
+405,4,Tools,2023-01-01
+501,5,Exercise Equipment,2023-01-01
+502,5,Sportswear,2023-01-01
+503,5,Outdoor Gear,2023-01-01
+504,5,Accessories,2023-01-01
+505,5,Footwear,2023-01-01
