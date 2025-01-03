@@ -14,7 +14,7 @@ boto3==1.35.77
 # Environment Management
 python-dotenv==1.0.1
 
-# Data Generation (for Testing/Mock Data)
+# Data Generation (for synthetic data)
 faker==19.3.0
 
 # dbt
