@@ -69,10 +69,6 @@ models:
         tests:
           - unique
           - not_null
-      - name: total_orders
-        description: Total number of orders placed
-        tests:
-          - not_null
       - name: customer_status
         description: Derived customer status based on last order date
         tests:

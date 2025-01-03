@@ -10,6 +10,7 @@ SELECT
     total_amount,
     COUNT(DISTINCT oi.product_id) as unique_products,
     SUM(oi.quantity) as total_items,
+    total_amount / NULLIF(COUNT(DISTINCT oi.product_id), 0) as avg_order_value
     AVG(r.review_score) as avg_review_score
 FROM {{ source('ecom_intermediate', 'orders') }} o
 LEFT JOIN {{ source('ecom_intermediate', 'order_items') }} oi USING (order_id)
