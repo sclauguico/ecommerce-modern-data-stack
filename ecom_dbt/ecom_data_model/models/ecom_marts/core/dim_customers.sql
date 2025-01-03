@@ -19,12 +19,6 @@ SELECT
     -- Type Fields Denormalized
     et.education_type,
     ms.status_type AS marital_status,
-    -- Metrics
-    COALESCE(o.total_orders, 0) AS total_orders,
-    COALESCE(o.total_spent, 0) AS total_spent,
-    COALESCE(o.total_spent / NULLIF(o.total_orders, 0), 0) AS avg_order_value,
-    o.first_order_date,
-    o.last_order_date,
     -- Derived Fields
     CASE 
         WHEN o.last_order_date >= DATEADD('month', -3, CURRENT_DATE()) THEN 'Active'
