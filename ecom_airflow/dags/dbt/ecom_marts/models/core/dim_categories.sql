@@ -3,13 +3,25 @@
     tags=['marts', 'dimensions']
 ) }}
 
+WITH category_hierarchy AS (
+    SELECT DISTINCT
+        c.category_id,
+        c.category_name,
+        LISTAGG(DISTINCT s.subcategory_name, ', ') 
+            WITHIN GROUP (ORDER BY s.subcategory_name) as subcategories
+    FROM {{ source('ecom_intermediate', 'categories_enriched') }} c
+    LEFT JOIN {{ source('ecom_intermediate', 'subcategories_enriched') }} s 
+        USING (category_id)
+    GROUP BY 
+        c.category_id,
+        c.category_name
+)
+
 SELECT
-    c.category_id,
-    c.category_name,
-    s.subcategory_name,
-    p.product_name
+    category_id,
+    category_name,
+    subcategories,
+    created_at
 FROM {{ source('ecom_intermediate', 'categories_enriched') }} c
-LEFT JOIN {{ source('ecom_intermediate', 'subcategories_enriched') }} s USING (category_id)
-LEFT JOIN {{ source('ecom_intermediate', 'products_enriched') }} p USING (category_id)
-LEFT JOIN {{ source('ecom_intermediate', 'order_items') }} oi USING (product_id)
-GROUP BY 1, 2
+LEFT JOIN category_hierarchy ch 
+    USING (category_id)
