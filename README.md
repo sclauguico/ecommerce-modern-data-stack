@@ -63,6 +63,7 @@ This project has been inspired by:
 - Data Engineering Zoomcamp
 - DeepLearning.AI AWS Data Engineering Professional Certificate
 - IBM Data Engineering
-- Joe Reis' teaching
-- Madyar Marat's DE project
+- Joe Reis' teachings
+- Jayzern's dbt-Airflow-Snowflake implementation
+- Madyar Marat's Heart rate stream DE project
 - Wynne Lo's Airflow and Astro article
