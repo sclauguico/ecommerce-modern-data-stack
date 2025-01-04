@@ -56,7 +56,7 @@ The processed and aggregated data is served to different downstream systems:
 
 
 See resources:
-- Demo video (WIP)
+- [Demo video](https://www.canva.com/design/DAGbNyzmvUc/1T2QqUJmLWkGbqHkyZ9jHw/watch?utm_content=DAGbNyzmvUc&utm_campaign=designshare&utm_medium=link2&utm_source=uniquelinks&utlId=hb0381f7610)
 - [Documentation](https://medium.com/@sclauguico/build-an-end-to-end-data-engineering-pipeline-for-ecommerce-with-a-modern-data-stack-e874d89b9906)
 
 This project has been inspired by:
