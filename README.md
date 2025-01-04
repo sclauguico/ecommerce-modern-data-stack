@@ -56,6 +56,13 @@ The processed and aggregated data is served to different downstream systems:
 
 
 See resources:
-- Demo video
-- Documentation
+- Demo video (WIP)
+- [Documentation](https://medium.com/@sclauguico/build-an-end-to-end-data-engineering-pipeline-for-ecommerce-with-a-modern-data-stack-e874d89b9906)
 
+This project has been inspired by:
+- Data Engineering Zoomcamp
+- DeepLearning.AI AWS Data Engineering Professional Certificate
+- IBM Data Engineering
+- Joe Reis' teaching
+- Madyar Marat's DE project
+- Wynne Lo's Airflow and Astro article
