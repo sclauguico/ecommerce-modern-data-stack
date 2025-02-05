@@ -34,12 +34,12 @@ models:
     ecom_staging:
       +materialized: view
       snowflake_warehouse: ECOM_WH
-      schema: ECOM_STAGING
+      # schema: ECOM_STAGING
     ecom_intermediate:
       +materialized: table
       snowflake_warehouse: ECOM_WH
-      schema: ECOM_INTERMEDIATE
+      # schema: ECOM_INTERMEDIATE
     ecom_marts:
       +tags: ["marts"]
       snowflake_warehouse: ECOM_WH
-      schema: ECOM_MARTS
+      # schema: ECOM_MARTS
