@@ -18,10 +18,13 @@ WITH category_hierarchy AS (
 )
 
 SELECT
-    category_id,
-    category_name,
-    subcategories,
-    created_at
+    CAST(c.category_id AS varchar(100)) as category_id,
+    CAST(c.category_name AS varchar(100)) as category_name,
+    CAST(ch.subcategories AS varchar(100)) as subcategories,
+    CAST(p.product_name AS varchar(100)) as product_name,
+    c.created_at
 FROM {{ source('ecom_intermediate', 'categories_enriched') }} c
 LEFT JOIN category_hierarchy ch 
+    USING (category_id)
+LEFT JOIN {{ source('ecom_intermediate', 'products_enriched') }} p 
     USING (category_id)

@@ -4,18 +4,25 @@
 ) }}
 
 SELECT
-    customer_id,
-    order_id,
-    order_date,
-    total_amount,
-    COUNT(DISTINCT oi.product_id) as unique_products,
-    SUM(oi.quantity) as total_items,
-    total_amount / NULLIF(COUNT(DISTINCT oi.product_id), 0) as avg_order_value,
-    AVG(r.review_score) as avg_review_score
+    o.customer_id,
+    o.order_id,
+    DATE(o.order_date) as order_date,
+    o.total_amount,
+    COUNT(DISTINCT oi.product_id) AS unique_products,
+    SUM(oi.quantity) AS total_items,
+    o.total_amount / NULLIF(COUNT(DISTINCT oi.product_id), 0) AS avg_order_value,
+    AVG(r.review_score) AS avg_review_score,
+    CURRENT_TIMESTAMP() AS created_at
 FROM {{ source('ecom_intermediate', 'orders') }} o
-LEFT JOIN {{ source('ecom_intermediate', 'order_items') }} oi USING (order_id)
-LEFT JOIN {{ source('ecom_intermediate', 'reviews_enriched') }} r USING (order_id)
+LEFT JOIN {{ source('ecom_intermediate', 'order_items') }} oi 
+    ON o.order_id = oi.order_id
+LEFT JOIN {{ source('ecom_intermediate', 'reviews_enriched') }} r 
+    ON o.order_id = r.order_id
 {% if is_incremental() %}
 WHERE o.order_date > (SELECT MAX(order_date) FROM {{ this }})
 {% endif %}
-GROUP BY 1, 2, 3, 4
+GROUP BY 
+    o.customer_id, 
+    o.order_id, 
+    o.order_date, 
+    o.total_amount

@@ -3,10 +3,15 @@
     tags=['marts', 'sales']
 ) }}
 
+{{ config(
+    materialized='table',
+    tags=['marts', 'sales']
+) }}
+
 SELECT
     -- Order Info
     o.order_id,
-    o.order_date,
+    DATE(o.order_date) as order_date,
     -- Customer Info
     c.customer_id,
     c.email,

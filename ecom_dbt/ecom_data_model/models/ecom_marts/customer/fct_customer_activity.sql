@@ -1,12 +1,12 @@
 {{ config(
-    materialized='incremental',
-    tags=['marts', 'customers']
+    materialized='table',
+    tags=['marts', 'customer', 'fact']
 ) }}
 
 SELECT
     c.customer_id,
     c.email,
-    DATE_TRUNC('month', DATE(i.event_date))::DATE AS activity_month,
+    DATE(i.event_date) AS event_date, 
     
     -- Page Views
     COUNT(CASE WHEN i.event_type = 'view' THEN 1 END) AS total_views,
@@ -33,4 +33,4 @@ WHERE DATE(i.event_date) IS NOT NULL
 GROUP BY 
     c.customer_id, 
     c.email, 
-    DATE_TRUNC('month', DATE(i.event_date))::DATE
+    DATE(i.event_date)
