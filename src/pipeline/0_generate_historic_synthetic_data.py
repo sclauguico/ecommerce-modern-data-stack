@@ -16,7 +16,7 @@ from pathlib import Path
 load_dotenv()
 
 class EcommerceDataGenerator:
-    def __init__(self, start_date=datetime(2023, 1, 1), end_date=datetime(2024, 12, 15)):
+    def __init__(self, start_date=datetime(2023, 1, 1), end_date=datetime(2025, 1, 31)):
         self.start_date = start_date
         self.end_date = end_date
         self.fake = Faker()
