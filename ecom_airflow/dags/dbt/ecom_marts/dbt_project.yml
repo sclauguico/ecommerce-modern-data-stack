@@ -2,11 +2,11 @@
 # Name your project! Project names should contain only lowercase characters
 # and underscores. A good package name should reflect your organization's
 # name or the intended use of these models
-name: 'ecom_staging'
+name: 'ecom_data_model'
 version: '1.0.0'
 
 # This setting configures which "profile" dbt uses for this project.
-profile: 'ecom_staging'
+profile: 'ecom_data_model'
 
 # These configurations specify where dbt should look for different types of files.
 # The `model-paths` config, for example, states that models in this project can be
@@ -35,4 +35,4 @@ models:
     staging:
       +materialized: view
       snowflake_warehouse: ECOM_WH
-      schema: ECOM_STAGING
+      schema: ECOM_MARTS

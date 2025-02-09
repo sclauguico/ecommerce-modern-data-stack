@@ -15,13 +15,25 @@ WITH category_hierarchy AS (
     GROUP BY 
         c.category_id,
         c.category_name
+),
+
+product_aggregation AS (
+    SELECT
+        category_id,
+        LISTAGG(DISTINCT product_name, ', ') 
+            WITHIN GROUP (ORDER BY product_name) as product_names
+    FROM {{ source('ecom_intermediate', 'products_enriched') }}
+    GROUP BY category_id
 )
 
 SELECT
-    category_id,
-    category_name,
-    subcategories,
-    created_at
+    CAST(c.category_id AS varchar(100)) as category_id,
+    CAST(c.category_name AS varchar(100)) as category_name,
+    CAST(ch.subcategories AS varchar(100)) as subcategories,
+    CAST(pa.product_names AS varchar(100)) as product_names,
+    c.created_at
 FROM {{ source('ecom_intermediate', 'categories_enriched') }} c
 LEFT JOIN category_hierarchy ch 
+    USING (category_id)
+LEFT JOIN product_aggregation pa 
     USING (category_id)

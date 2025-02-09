@@ -28,7 +28,7 @@ models:
       materialized: view
       tags: ['marts', 'core', 'dimension']
     columns:
-      - name: date_day
+      - name: date
         description: Primary key - calendar date
         tests:
           - unique
@@ -78,7 +78,7 @@ models:
     description: Monthly customer activity metrics
     config:
       materialized: table
-      unique_key: ['customer_id', 'activity_month']
+      unique_key: ['customer_id', 'event_date']
       tags: ['marts', 'customer', 'fact']
     columns:
       - name: customer_id
@@ -88,7 +88,7 @@ models:
           - relationships:
               to: ref('dim_customers')
               field: customer_id
-      - name: activity_month
+      - name: event_date
         description: Month of activity
         tests:
           - not_null
@@ -158,15 +158,18 @@ models:
     description: Regional sales performance
     config:
       materialized: table
-      unique_key: ['state', 'country']
+      unique_key: ['location_id', 'date']
       tags: ['marts', 'sales', 'fact']
     columns:
-      - name: state
-        description: State/province
+      - name: location_id
+        description: oreign key to dim_locations table
         tests:
           - not_null
-      - name: country
-        description: Country
+          - relationships:
+              to: ref('locations')
+              field: location_id
+      - name: date
+        description: Date of sales activity
         tests:
           - not_null
 
