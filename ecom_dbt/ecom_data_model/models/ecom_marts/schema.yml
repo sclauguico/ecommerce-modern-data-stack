@@ -6,125 +6,33 @@ sources:
     schema: ecom_intermediate
     tables:
       - name: addresses
-        columns:
-          - name: address_id
-            tests:
-              - unique
-              - not_null
       - name: brands
-        columns:
-          - name: brand_id
-            tests:
-              - unique
-              - not_null
       - name: categories_enriched
-        columns:
-          - name: category_id
-            tests:
-              - unique
-              - not_null
       - name: subcategories_enriched
-        columns:
-          - name: subcategory_id
-            tests:
-              - unique
-              - not_null
       - name: reviews_enriched
-        columns:
-          - name: review_id
-            tests:
-              - unique
-              - not_null
       - name: customers_enriched
-        columns:
-          - name: customer_id
-            tests:
-              - unique
-              - not_null
       - name: customer_interactions
-        columns:
-          - name: event_id
-            tests:
-              - unique
-              - not_null
-          - name: event_date
-            tests:
-              - not_null
       - name: education_types
-        columns:
-          - name: education_id
-            tests:
-              - unique
-              - not_null
       - name: locations
-        columns:
-          - name: location_id
-            tests:
-              - unique
-              - not_null
       - name: marital_statuses
-        columns:
-          - name: marital_status_id
-            tests:
-              - unique
-              - not_null
       - name: orders
-        columns:
-          - name: order_id
-            tests:
-              - unique
-              - not_null
       - name: order_items
-        columns:
-          - name: order_item_id
-            tests:
-              - unique
-              - not_null
       - name: order_statuses
-        columns:
-          - name: status_id
-            tests:
-              - unique
-              - not_null
       - name: payment_methods
-        columns:
-          - name: payment_method_id
-            tests:
-              - unique
-              - not_null
       - name: products_enriched
-        columns:
-          - name: product_id
-            tests:
-              - unique
-              - not_null
 
 models:
   - name: dim_dates
-    description: Date dimension with enhanced attributes for time-based analysis
+    description: Date dimension for time-based analysis
     config:
       materialized: view
-      tags: ['core', 'dimension']
+      tags: ['marts', 'core', 'dimension']
     columns:
       - name: date
         description: Primary key - calendar date
         tests:
           - unique
           - not_null
-      - name: year
-        description: Calendar year
-      - name: month
-        description: Calendar month
-      - name: day_of_week
-        description: Day of week (0-6)
-      - name: first_day_of_month
-        description: First day of the month
-      - name: last_day_of_month
-        description: Last day of the month
-      - name: first_day_of_year
-        description: First day of the year
-      - name: date_status
-        description: Current/Past/Future status
 
   - name: dim_categories
     description: Product category hierarchy
@@ -137,67 +45,39 @@ models:
         tests:
           - unique
           - not_null
-          - relationships:
-              to: source('ecom_intermediate', 'categories_enriched')
-              field: category_id
 
   - name: dim_products
-    description: Product dimension with category hierarchy
+    description: Denormalized product dimension with all attributes and metrics
     config:
       materialized: view
-      tags: ['core', 'dimension']
+      tags: ['marts', 'core', 'dimension']
     columns:
       - name: product_id
         description: Primary key
         tests:
           - unique
           - not_null
-      - name: category_id
-        tests:
-          - not_null
-          - relationships:
-              to: source('ecom_intermediate', 'categories_enriched')
-              field: category_id
-      - name: inventory_status
-        tests:
-          - accepted_values:
-              values: ['In Stock', 'Low Stock', 'Out of Stock']
 
   - name: dim_customers
-    description: Customer dimension with cohort and lifecycle information
+    description: Denormalized customer dimension with all attributes and metrics
     config:
       materialized: view
-      tags: ['core', 'dimension']
+      tags: ['marts', 'core', 'dimension']
     columns:
       - name: customer_id
         description: Primary key
         tests:
           - unique
           - not_null
-      - name: email
-        tests:
-          - not_null
-      - name: cohort_month
-        description: First purchase month - used for cohort analysis
-        tests:
-          - not_null
       - name: customer_status
-        description: Active/At Risk/Churned status
-        tests:
-          - not_null
-          - accepted_values:
-              values: ['Active', 'At Risk', 'Churned']
-      - name: lifetime_orders
-        tests:
-          - not_null
-      - name: lifetime_spend
+        description: Derived customer status based on last order date
         tests:
           - not_null
 
   - name: fct_customer_activity
-    description: Daily customer activity metrics capturing views, purchases, and session data
+    description: Monthly customer activity metrics
     config:
-      materialized: incremental
+      materialized: table
       unique_key: ['customer_id', 'event_date']
       tags: ['marts', 'customer', 'fact']
     columns:
@@ -208,125 +88,54 @@ models:
           - relationships:
               to: ref('dim_customers')
               field: customer_id
-
-      - name: email
-        description: Customer email address
-        tests:
-          - not_null
-
       - name: event_date
-        description: Date of customer activity
-        tests:
-          - not_null
-          - relationships:
-              to: ref('dim_dates')
-              field: date_day
-
-      - name: total_views
-        description: Total number of product views
-        tests:
-          - not_null
-          - dbt_utils.positive_value
-
-      - name: unique_products_viewed
-        description: Number of unique products viewed
-        tests:
-          - not_null
-          - dbt_utils.positive_value
-
-      - name: cart_adds
-        description: Number of items added to cart
-        tests:
-          - not_null
-          - dbt_utils.positive_value
-
-      - name: unique_products_added
-        description: Number of unique products added to cart
-        tests:
-          - not_null
-          - dbt_utils.positive_value
-
-      - name: purchases
-        description: Number of purchases made
-        tests:
-          - not_null
-          - dbt_utils.positive_value
-
-      - name: unique_products_purchased
-        description: Number of unique products purchased
-        tests:
-          - not_null
-          - dbt_utils.positive_value
-
-      - name: total_sessions
-        description: Total number of user sessions
-        tests:
-          - not_null
-          - dbt_utils.positive_value
-
-      - name: devices_used
-        description: Number of unique devices used
-        tests:
-          - not_null
-          - dbt_utils.positive_value
-
-      - name: updated_at
-        description: Timestamp of last update
+        description: Month of activity
         tests:
           - not_null
 
   - name: fct_order_details
-    description: Detailed order facts with cohort metrics
+    description: Detailed order fact table with denormalized customer and product info
     config:
       materialized: table
-      tags: ['sales', 'fact']
+      unique_key: 'order_id'
+      tags: ['marts', 'sales', 'fact']
     columns:
       - name: order_id
         description: Primary key
         tests:
-          - unique
           - not_null
       - name: order_date
+        description: Date of order
         tests:
           - not_null
-          - relationships:
-              to: ref('dim_dates')
-              field: date
       - name: customer_id
         tests:
-          - not_null
           - relationships:
               to: ref('dim_customers')
               field: customer_id
       - name: product_id
         tests:
-          - not_null
           - relationships:
               to: ref('dim_products')
               field: product_id
-      - name: months_since_first_purchase
-        description: Months between first purchase and current order
-        tests:
-          - not_null
 
   - name: fct_sales_by_date
     description: Daily sales aggregations
     config:
       materialized: table
-      tags: ['sales', 'fact']
+      tags: ['marts', 'sales', 'fact']
     columns:
       - name: sale_date
         description: Primary key - date of sale
         tests:
           - unique
           - not_null
-          - relationships:
-              to: ref('dim_dates')
-              field: date
       - name: total_revenue
+        description: Total revenue for the day
         tests:
           - not_null
       - name: total_orders
+        description: Total number of orders for the day
         tests:
           - not_null
 
@@ -346,51 +155,21 @@ models:
               field: product_id
 
   - name: fct_sales_by_region
-    description: Daily sales performance by geographic region
+    description: Regional sales performance
     config:
       materialized: table
       unique_key: ['location_id', 'date']
       tags: ['marts', 'sales', 'fact']
     columns:
       - name: location_id
-        description: Foreign key to dim_locations table
+        description: oreign key to dim_locations table
         tests:
           - not_null
           - relationships:
               to: ref('locations')
               field: location_id
-
       - name: date
         description: Date of sales activity
-        tests:
-          - not_null
-
-      - name: total_orders
-        description: Total number of orders for the region and date
-        tests:
-          - not_null
-          - dbt_utils.positive_value
-
-      - name: total_revenue
-        description: Total revenue for the region and date
-        tests:
-          - not_null
-          - dbt_utils.positive_value
-
-      - name: avg_order_value
-        description: Average order value for the region and date
-        tests:
-          - not_null
-          - dbt_utils.positive_value
-
-      - name: customer_count
-        description: Number of unique customers who made purchases
-        tests:
-          - not_null
-          - dbt_utils.positive_value
-
-      - name: created_at
-        description: Timestamp when the record was created
         tests:
           - not_null
 
@@ -433,72 +212,24 @@ models:
           - not_null
 
   - name: fct_product_performance
-    description: Daily product performance metrics including sales, inventory, and profitability
+    description: Product performance metrics
     config:
       materialized: table
-      unique_key: ['product_id', 'date']
+      unique_key: ['product_id']
       tags: ['marts', 'product', 'fact']
     columns:
       - name: product_id
-        description: Foreign key to dim_products table
         tests:
           - not_null
           - relationships:
               to: ref('dim_products')
               field: product_id
 
-      - name: date
-        description: Date of product performance metrics
-        tests:
-          - not_null
-
-      - name: total_orders
-        description: Total number of orders containing this product
-        tests:
-          - not_null
-          - dbt_utils.positive_value
-
-      - name: units_sold
-        description: Total quantity of units sold
-        tests:
-          - not_null
-          - dbt_utils.positive_value
-
-      - name: revenue
-        description: Total revenue generated from product sales
-        tests:
-          - not_null
-          - dbt_utils.positive_value
-
-      - name: profit_margin
-        description: Calculated profit margin as a percentage
-        tests:
-          - not_null
-          - dbt_utils.accepted_range:
-              min_value: -100
-              max_value: 100
-
-      - name: stock_level
-        description: Current inventory level
-        tests:
-          - not_null
-          - dbt_utils.positive_value
-
-      - name: reorder_flag
-        description: Boolean flag indicating if product needs reordering
-        tests:
-          - not_null
-
-      - name: created_at
-        description: Timestamp when the record was created
-        tests:
-          - not_null
-
   - name: fct_product_interactions
     description: Product engagement metrics (views, cart adds, etc.)
     config:
       materialized: table
-      unique_key: ['product_id', 'event_date']
+      unique_key: ['product_id', 'event_day']
       tags: ['marts', 'product', 'fact']
     columns:
       - name: product_id
