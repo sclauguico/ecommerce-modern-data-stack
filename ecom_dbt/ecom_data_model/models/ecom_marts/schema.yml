@@ -238,3 +238,13 @@ models:
           - relationships:
               to: ref('dim_products')
               field: product_id
+              
+  - name: customer_journey_sankey
+    description: Tracks customer category purchase paths for Sankey visualization
+    columns:
+      - name: source_category
+        description: Starting category in the path
+      - name: target_category
+        description: Next category in the path
+      - name: flow_value
+        description: Number of customers following this path
