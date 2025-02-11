@@ -85,31 +85,209 @@ class RecentEcommerceDataGenerator:
         ]
 
     def generate_product_categories(self):
-        """Generate product categories and subcategories"""
+        """Generate product categories with meaningful business metrics and attributes"""
+        # Define comprehensive category characteristics
         categories = {
-            'Electronics': ['Smartphones', 'Laptops', 'Accessories', 'Tablets', 'Wearables'],
-            'Fashion': ['Men\'s Clothing', 'Women\'s Clothing', 'Children\'s Clothing', 'Shoes', 'Accessories'],
-            'Home & Living': ['Furniture', 'Kitchen', 'Decor', 'Bedding', 'Storage'],
-            'Beauty': ['Skincare', 'Makeup', 'Haircare', 'Fragrances', 'Tools'],
-            'Sports': ['Exercise Equipment', 'Sportswear', 'Outdoor Gear', 'Accessories', 'Footwear']
+            'Electronics': {
+                'subcategories': [
+                    {
+                        'name': 'Smartphones',
+                        'margin_range': (0.15, 0.25),
+                        'return_rate': 0.05,
+                        'shipping_weight_factor': 0.8
+                    },
+                    {
+                        'name': 'Laptops',
+                        'margin_range': (0.12, 0.20),
+                        'return_rate': 0.06,
+                        'shipping_weight_factor': 2.0
+                    },
+                    {
+                        'name': 'Accessories',
+                        'margin_range': (0.40, 0.60),
+                        'return_rate': 0.03,
+                        'shipping_weight_factor': 0.3
+                    },
+                    {
+                        'name': 'Tablets',
+                        'margin_range': (0.20, 0.30),
+                        'return_rate': 0.04,
+                        'shipping_weight_factor': 1.0
+                    },
+                    {
+                        'name': 'Wearables',
+                        'margin_range': (0.30, 0.45),
+                        'return_rate': 0.04,
+                        'shipping_weight_factor': 0.4
+                    }
+                ],
+                'seasonal_factors': {  # Monthly factors
+                    1: 1.2,  # Post-holiday sales
+                    2: 0.8,
+                    3: 0.9,
+                    4: 1.0,
+                    5: 1.1,  # Graduation
+                    6: 1.2,
+                    7: 1.0,
+                    8: 1.3,  # Back to school
+                    9: 1.1,
+                    10: 1.0,
+                    11: 1.4,  # Black Friday
+                    12: 1.5   # Holiday season
+                },
+                'growth_rate': 0.15,  # 15% annual growth
+                'storage_cost': 2.5    # Storage cost per unit
+            },
+            'Fashion': {
+                'subcategories': [
+                    {
+                        'name': "Men's Clothing",
+                        'margin_range': (0.45, 0.65),
+                        'return_rate': 0.12,
+                        'shipping_weight_factor': 0.7
+                    },
+                    {
+                        'name': "Women's Clothing",
+                        'margin_range': (0.50, 0.70),
+                        'return_rate': 0.15,
+                        'shipping_weight_factor': 0.7
+                    },
+                    {
+                        'name': "Children's Clothing",
+                        'margin_range': (0.40, 0.60),
+                        'return_rate': 0.08,
+                        'shipping_weight_factor': 0.5
+                    },
+                    {
+                        'name': 'Shoes',
+                        'margin_range': (0.45, 0.65),
+                        'return_rate': 0.10,
+                        'shipping_weight_factor': 1.0
+                    },
+                    {
+                        'name': 'Fashion Accessories',
+                        'margin_range': (0.60, 0.80),
+                        'return_rate': 0.07,
+                        'shipping_weight_factor': 0.3
+                    }
+                ],
+                'seasonal_factors': {
+                    1: 0.8,   # Post-holiday lull
+                    2: 0.9,
+                    3: 1.2,   # Spring fashion
+                    4: 1.1,
+                    5: 1.2,   # Summer prep
+                    6: 1.1,
+                    7: 0.9,
+                    8: 1.2,   # Fall fashion
+                    9: 1.1,
+                    10: 1.0,
+                    11: 1.3,  # Black Friday
+                    12: 1.4   # Holiday season
+                },
+                'growth_rate': 0.12,
+                'storage_cost': 1.5
+            },
+            'Home & Living': {
+                'subcategories': [
+                    {
+                        'name': 'Furniture',
+                        'margin_range': (0.35, 0.55),
+                        'return_rate': 0.06,
+                        'shipping_weight_factor': 3.0
+                    },
+                    {
+                        'name': 'Kitchen',
+                        'margin_range': (0.40, 0.60),
+                        'return_rate': 0.05,
+                        'shipping_weight_factor': 1.5
+                    },
+                    {
+                        'name': 'Decor',
+                        'margin_range': (0.50, 0.70),
+                        'return_rate': 0.08,
+                        'shipping_weight_factor': 1.0
+                    },
+                    {
+                        'name': 'Bedding',
+                        'margin_range': (0.45, 0.65),
+                        'return_rate': 0.04,
+                        'shipping_weight_factor': 1.2
+                    },
+                    {
+                        'name': 'Storage',
+                        'margin_range': (0.40, 0.60),
+                        'return_rate': 0.03,
+                        'shipping_weight_factor': 2.0
+                    }
+                ],
+                'seasonal_factors': {
+                    1: 1.1,   # New Year organization
+                    2: 0.9,
+                    3: 1.2,   # Spring cleaning
+                    4: 1.1,
+                    5: 1.0,
+                    6: 1.1,   # Wedding season
+                    7: 1.0,
+                    8: 1.2,   # Back to school
+                    9: 0.9,
+                    10: 1.0,
+                    11: 1.2,  # Black Friday
+                    12: 1.3   # Holiday season
+                },
+                'growth_rate': 0.10,
+                'storage_cost': 3.0
+            }
         }
         
         category_data = []
         subcategory_data = []
         
-        for cat_id, (category, subcategories) in enumerate(categories.items(), 1):
+        for cat_id, (category_name, category_props) in enumerate(categories.items(), 1):
+            # Calculate category metrics
+            current_month = self.end_date.month
+            seasonal_factor = category_props['seasonal_factors'][current_month]
+            
             category_data.append({
                 'category_id': cat_id,
-                'category_name': category,
-                'created_at': self.start_date
+                'category_name': category_name,
+                'created_at': self.start_date,
+                'seasonal_factor': seasonal_factor,
+                'growth_rate': category_props['growth_rate'],
+                'storage_cost': category_props['storage_cost'],
+                'description': f"Category for all {category_name.lower()} products",
+                'display_order': cat_id,
+                'is_active': True,
+                'target_margin': round(
+                    sum(sub['margin_range'][0] for sub in category_props['subcategories']) / 
+                    len(category_props['subcategories']), 
+                    2
+                ),
+                'avg_return_rate': round(
+                    sum(sub['return_rate'] for sub in category_props['subcategories']) / 
+                    len(category_props['subcategories']), 
+                    3
+                )
             })
             
-            for sub_id, subcategory in enumerate(subcategories, 1):
+            for sub_id, subcategory in enumerate(category_props['subcategories'], 1):
+                # Calculate subcategory-specific metrics
+                margin_low, margin_high = subcategory['margin_range']
+                target_margin = round(random.uniform(margin_low, margin_high), 2)
+                
                 subcategory_data.append({
                     'subcategory_id': (cat_id * 100) + sub_id,
                     'category_id': cat_id,
-                    'subcategory_name': subcategory,
-                    'created_at': self.start_date
+                    'subcategory_name': subcategory['name'],
+                    'created_at': self.start_date,
+                    'target_margin': target_margin,
+                    'return_rate': subcategory['return_rate'],
+                    'shipping_weight_factor': subcategory['shipping_weight_factor'],
+                    'display_order': sub_id,
+                    'is_active': True,
+                    'handling_fee': round(5 * subcategory['shipping_weight_factor'], 2),
+                    'min_order_quantity': 1,
+                    'description': f"{subcategory['name']} within {category_name} category"
                 })
         
         return pd.DataFrame(category_data), pd.DataFrame(subcategory_data)
