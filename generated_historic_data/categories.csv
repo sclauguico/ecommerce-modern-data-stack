@@ -1,6 +1,6 @@
-category_id,category_name,created_at
-1,Electronics,2023-01-01
-2,Fashion,2023-01-01
-3,Home & Living,2023-01-01
-4,Beauty,2023-01-01
-5,Sports,2023-01-01
+category_id,category_name,market_share,growth_rate,price_range_min,price_range_max,created_at
+1,Electronics,0.25,0.15,50,2000,2023-01-01
+2,Fashion,0.2,0.12,15,500,2023-01-01
+3,Home & Living,0.18,0.1,20,2500,2023-01-01
+4,Beauty,0.15,0.14,5,300,2023-01-01
+5,Sports,0.12,0.09,10,1500,2023-01-01

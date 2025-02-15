@@ -85,212 +85,34 @@ class RecentEcommerceDataGenerator:
         ]
 
     def generate_product_categories(self):
-        """Generate product categories with meaningful business metrics and attributes"""
-        # Define comprehensive category characteristics
-        categories = {
-            'Electronics': {
-                'subcategories': [
-                    {
-                        'name': 'Smartphones',
-                        'margin_range': (0.15, 0.25),
-                        'return_rate': 0.05,
-                        'shipping_weight_factor': 0.8
-                    },
-                    {
-                        'name': 'Laptops',
-                        'margin_range': (0.12, 0.20),
-                        'return_rate': 0.06,
-                        'shipping_weight_factor': 2.0
-                    },
-                    {
-                        'name': 'Accessories',
-                        'margin_range': (0.40, 0.60),
-                        'return_rate': 0.03,
-                        'shipping_weight_factor': 0.3
-                    },
-                    {
-                        'name': 'Tablets',
-                        'margin_range': (0.20, 0.30),
-                        'return_rate': 0.04,
-                        'shipping_weight_factor': 1.0
-                    },
-                    {
-                        'name': 'Wearables',
-                        'margin_range': (0.30, 0.45),
-                        'return_rate': 0.04,
-                        'shipping_weight_factor': 0.4
-                    }
-                ],
-                'seasonal_factors': {  # Monthly factors
-                    1: 1.2,  # Post-holiday sales
-                    2: 0.8,
-                    3: 0.9,
-                    4: 1.0,
-                    5: 1.1,  # Graduation
-                    6: 1.2,
-                    7: 1.0,
-                    8: 1.3,  # Back to school
-                    9: 1.1,
-                    10: 1.0,
-                    11: 1.4,  # Black Friday
-                    12: 1.5   # Holiday season
-                },
-                'growth_rate': 0.15,  # 15% annual growth
-                'storage_cost': 2.5    # Storage cost per unit
-            },
-            'Fashion': {
-                'subcategories': [
-                    {
-                        'name': "Men's Clothing",
-                        'margin_range': (0.45, 0.65),
-                        'return_rate': 0.12,
-                        'shipping_weight_factor': 0.7
-                    },
-                    {
-                        'name': "Women's Clothing",
-                        'margin_range': (0.50, 0.70),
-                        'return_rate': 0.15,
-                        'shipping_weight_factor': 0.7
-                    },
-                    {
-                        'name': "Children's Clothing",
-                        'margin_range': (0.40, 0.60),
-                        'return_rate': 0.08,
-                        'shipping_weight_factor': 0.5
-                    },
-                    {
-                        'name': 'Shoes',
-                        'margin_range': (0.45, 0.65),
-                        'return_rate': 0.10,
-                        'shipping_weight_factor': 1.0
-                    },
-                    {
-                        'name': 'Fashion Accessories',
-                        'margin_range': (0.60, 0.80),
-                        'return_rate': 0.07,
-                        'shipping_weight_factor': 0.3
-                    }
-                ],
-                'seasonal_factors': {
-                    1: 0.8,   # Post-holiday lull
-                    2: 0.9,
-                    3: 1.2,   # Spring fashion
-                    4: 1.1,
-                    5: 1.2,   # Summer prep
-                    6: 1.1,
-                    7: 0.9,
-                    8: 1.2,   # Fall fashion
-                    9: 1.1,
-                    10: 1.0,
-                    11: 1.3,  # Black Friday
-                    12: 1.4   # Holiday season
-                },
-                'growth_rate': 0.12,
-                'storage_cost': 1.5
-            },
-            'Home & Living': {
-                'subcategories': [
-                    {
-                        'name': 'Furniture',
-                        'margin_range': (0.35, 0.55),
-                        'return_rate': 0.06,
-                        'shipping_weight_factor': 3.0
-                    },
-                    {
-                        'name': 'Kitchen',
-                        'margin_range': (0.40, 0.60),
-                        'return_rate': 0.05,
-                        'shipping_weight_factor': 1.5
-                    },
-                    {
-                        'name': 'Decor',
-                        'margin_range': (0.50, 0.70),
-                        'return_rate': 0.08,
-                        'shipping_weight_factor': 1.0
-                    },
-                    {
-                        'name': 'Bedding',
-                        'margin_range': (0.45, 0.65),
-                        'return_rate': 0.04,
-                        'shipping_weight_factor': 1.2
-                    },
-                    {
-                        'name': 'Storage',
-                        'margin_range': (0.40, 0.60),
-                        'return_rate': 0.03,
-                        'shipping_weight_factor': 2.0
-                    }
-                ],
-                'seasonal_factors': {
-                    1: 1.1,   # New Year organization
-                    2: 0.9,
-                    3: 1.2,   # Spring cleaning
-                    4: 1.1,
-                    5: 1.0,
-                    6: 1.1,   # Wedding season
-                    7: 1.0,
-                    8: 1.2,   # Back to school
-                    9: 0.9,
-                    10: 1.0,
-                    11: 1.2,  # Black Friday
-                    12: 1.3   # Holiday season
-                },
-                'growth_rate': 0.10,
-                'storage_cost': 3.0
+            """Generate product categories with realistic distributions"""
+            categories = {
+                'Electronics': ['Smartphones', 'Laptops', 'Accessories', 'Tablets', 'Wearables'],
+                'Fashion': ['Men\'s Clothing', 'Women\'s Clothing', 'Children\'s Clothing', 'Shoes', 'Accessories'],
+                'Home & Living': ['Furniture', 'Kitchen', 'Decor', 'Bedding', 'Storage'],
+                'Beauty': ['Skincare', 'Makeup', 'Haircare', 'Fragrances', 'Tools'],
+                'Sports': ['Exercise Equipment', 'Sportswear', 'Outdoor Gear', 'Accessories', 'Footwear']
             }
-        }
-        
-        category_data = []
-        subcategory_data = []
-        
-        for cat_id, (category_name, category_props) in enumerate(categories.items(), 1):
-            # Calculate category metrics
-            current_month = self.end_date.month
-            seasonal_factor = category_props['seasonal_factors'][current_month]
             
-            category_data.append({
-                'category_id': cat_id,
-                'category_name': category_name,
-                'created_at': self.start_date,
-                'seasonal_factor': seasonal_factor,
-                'growth_rate': category_props['growth_rate'],
-                'storage_cost': category_props['storage_cost'],
-                'description': f"Category for all {category_name.lower()} products",
-                'display_order': cat_id,
-                'is_active': True,
-                'target_margin': round(
-                    sum(sub['margin_range'][0] for sub in category_props['subcategories']) / 
-                    len(category_props['subcategories']), 
-                    2
-                ),
-                'avg_return_rate': round(
-                    sum(sub['return_rate'] for sub in category_props['subcategories']) / 
-                    len(category_props['subcategories']), 
-                    3
-                )
-            })
+            category_data = []
+            subcategory_data = []
             
-            for sub_id, subcategory in enumerate(category_props['subcategories'], 1):
-                # Calculate subcategory-specific metrics
-                margin_low, margin_high = subcategory['margin_range']
-                target_margin = round(random.uniform(margin_low, margin_high), 2)
-                
-                subcategory_data.append({
-                    'subcategory_id': (cat_id * 100) + sub_id,
+            for cat_id, (category, subcategories) in enumerate(categories.items(), 1):
+                category_data.append({
                     'category_id': cat_id,
-                    'subcategory_name': subcategory['name'],
-                    'created_at': self.start_date,
-                    'target_margin': target_margin,
-                    'return_rate': subcategory['return_rate'],
-                    'shipping_weight_factor': subcategory['shipping_weight_factor'],
-                    'display_order': sub_id,
-                    'is_active': True,
-                    'handling_fee': round(5 * subcategory['shipping_weight_factor'], 2),
-                    'min_order_quantity': 1,
-                    'description': f"{subcategory['name']} within {category_name} category"
+                    'category_name': category,
+                    'created_at': self.start_date
                 })
-        
-        return pd.DataFrame(category_data), pd.DataFrame(subcategory_data)
+                
+                for sub_id, subcategory in enumerate(subcategories, 1):
+                    subcategory_data.append({
+                        'subcategory_id': (cat_id * 100) + sub_id,
+                        'category_id': cat_id,
+                        'subcategory_name': subcategory,
+                        'created_at': self.start_date
+                    })
+            
+            return pd.DataFrame(category_data), pd.DataFrame(subcategory_data)
 
     def generate_random_date(self):
         """Generate a random date within the last 30 days"""
@@ -298,271 +120,172 @@ class RecentEcommerceDataGenerator:
         return self.end_date - timedelta(days=days_offset)
 
     def generate_products(self, n_products=1000):
-        """Generate product catalog with realistic patterns and pricing"""
+        """Generate product catalog with realistic patterns"""
         categories_df, subcategories_df = self.generate_product_categories()
         
-        # Define category-specific price ranges and characteristics
-        category_props = {
-            1: {  # Electronics
-                'price_range': (200, 2000),
-                'margin_range': (0.15, 0.35),
-                'seasonal_factor': 1.2,  # Higher demand in holiday season
-                'stock_range': (50, 500),
-                'weight_range': (0.3, 10.0)
-            },
-            2: {  # Fashion
-                'price_range': (20, 300),
-                'margin_range': (0.40, 0.70),
-                'seasonal_factor': 1.1,
-                'stock_range': (100, 1000),
-                'weight_range': (0.1, 2.0)
-            },
-            3: {  # Home & Living
-                'price_range': (50, 1500),
-                'margin_range': (0.30, 0.60),
-                'seasonal_factor': 1.0,
-                'stock_range': (30, 300),
-                'weight_range': (0.5, 25.0)
-            },
-            4: {  # Beauty
-                'price_range': (10, 200),
-                'margin_range': (0.45, 0.75),
-                'seasonal_factor': 1.1,
-                'stock_range': (200, 800),
-                'weight_range': (0.1, 1.0)
-            },
-            5: {  # Sports
-                'price_range': (30, 500),
-                'margin_range': (0.25, 0.50),
-                'seasonal_factor': 1.15,
-                'stock_range': (50, 400),
-                'weight_range': (0.2, 15.0)
-            }
+        # Price tier probabilities and characteristics
+        price_tiers = {
+            'luxury': {'multiplier': (2.0, 3.0), 'stock': (10, 50), 'weight': 0.1},
+            'premium': {'multiplier': (1.5, 2.0), 'stock': (20, 100), 'weight': 0.2},
+            'standard': {'multiplier': (1.0, 1.5), 'stock': (50, 200), 'weight': 0.4},
+            'budget': {'multiplier': (0.6, 1.0), 'stock': (100, 500), 'weight': 0.3}
         }
-
-        # Brand tiers and their characteristics
+        
+        # Brand quality tiers
         brand_tiers = {
-            'Premium': {
-                'price_multiplier': (1.3, 1.8),
-                'rating_boost': 0.5,
-                'stock_multiplier': 0.7,  # Limited stock for premium items
-                'weight': 0.2  # 20% of brands are premium
-            },
-            'Standard': {
-                'price_multiplier': (0.9, 1.2),
-                'rating_boost': 0.2,
-                'stock_multiplier': 1.0,
-                'weight': 0.5  # 50% of brands are standard
-            },
-            'Budget': {
-                'price_multiplier': (0.6, 0.8),
-                'rating_boost': -0.1,
-                'stock_multiplier': 1.3,  # Higher stock for budget items
-                'weight': 0.3  # 30% of brands are budget
-            }
+            'luxury': {'rating_base': (4.3, 5.0), 'weight': 0.1},
+            'premium': {'rating_base': (4.0, 4.7), 'weight': 0.2},
+            'standard': {'rating_base': (3.5, 4.3), 'weight': 0.4},
+            'budget': {'rating_base': (3.0, 4.0), 'weight': 0.3}
         }
-
+        
         products = []
         for product_id in range(1, n_products + 1):
             category_id = random.randint(1, len(categories_df))
-            cat_props = category_props[category_id]
+            valid_subcats = subcategories_df[subcategories_df['category_id'] == category_id]
+            subcategory_id = random.choice(valid_subcats['subcategory_id'].values)
             
-            # Select brand tier
+            # Select price and brand tiers
+            price_tier = random.choices(
+                list(price_tiers.keys()),
+                weights=[t['weight'] for t in price_tiers.values()]
+            )[0]
             brand_tier = random.choices(
                 list(brand_tiers.keys()),
                 weights=[t['weight'] for t in brand_tiers.values()]
             )[0]
-            tier_props = brand_tiers[brand_tier]
             
-            # Generate brand with consistent properties
-            brand = f"{self.fake.company()} {brand_tier}"
+            # Generate base price using lognormal distribution
+            base_price = np.random.lognormal(
+                mean=np.log(100),
+                sigma=0.7
+            )
             
-            # Base price calculation
-            base_price = random.uniform(*cat_props['price_range'])
-            price_multiplier = random.uniform(*tier_props['price_multiplier'])
-            final_base_price = base_price * price_multiplier
+            # Apply tier multipliers
+            tier_multiplier = random.uniform(
+                *price_tiers[price_tier]['multiplier']
+            )
+            final_base_price = base_price * tier_multiplier
             
-            # Calculate sale price with seasonal adjustment
-            discount_factor = random.uniform(0.8, 0.95)
-            sale_price = final_base_price * discount_factor * cat_props['seasonal_factor']
+            # Generate sale price with seasonal factors
+            month_factor = 1.0
+            if self.end_date.month in [11, 12]:  # Holiday season
+                month_factor = random.uniform(0.7, 0.9)  # Bigger discounts
+            elif self.end_date.month in [1, 7]:  # New Year and Summer sales
+                month_factor = random.uniform(0.8, 0.95)
             
-            # Stock quantity based on tier and category
-            base_stock = random.randint(*cat_props['stock_range'])
-            stock_quantity = int(base_stock * tier_props['stock_multiplier'])
+            sale_price = final_base_price * month_factor
             
-            # Rating calculation
-            base_rating = random.uniform(3.5, 4.5)
-            adjusted_rating = min(5.0, base_rating + tier_props['rating_boost'])
+            # Stock quantity with tier-based variation
+            stock_range = price_tiers[price_tier]['stock']
+            stock_quantity = random.randint(*stock_range)
             
-            valid_subcats = subcategories_df[subcategories_df['category_id'] == category_id]
-            subcategory_id = random.choice(valid_subcats['subcategory_id'].values)
+            # Rating with brand tier influence
+            rating_range = brand_tiers[brand_tier]['rating_base']
+            base_rating = random.uniform(*rating_range)
             
-            # Generate created_at date with more recent dates more likely
-            days_ago = int(np.random.exponential(7))  # Most products created in last week
-            days_ago = min(days_ago, 30)  # Cap at 30 days
+            # Add some random variation
+            rating = round(min(5.0, max(1.0, np.random.normal(base_rating, 0.2))), 1)
+            
+            # Generate creation date with exponential distribution
+            days_ago = int(np.random.exponential(7))  # Most products added recently
+            days_ago = min(days_ago, 30)
             created_at = self.end_date - timedelta(days=days_ago)
             
             products.append({
                 'product_id': product_id,
                 'category_id': category_id,
                 'subcategory_id': subcategory_id,
-                'product_name': f"{brand} {self.fake.word().title()}",
-                'description': self.generate_product_description(category_id, brand_tier),
+                'product_name': f"{self.fake.company()} {self.fake.word().title()}",
+                'description': self.fake.text(max_nb_chars=200),
                 'base_price': round(final_base_price, 2),
                 'sale_price': round(sale_price, 2),
                 'stock_quantity': stock_quantity,
-                'weight_kg': round(random.uniform(*cat_props['weight_range']), 2),
-                'is_active': True if stock_quantity > 0 else False,
+                'weight_kg': round(random.uniform(0.1, 20.0), 2),
+                'is_active': stock_quantity > 0,
                 'created_at': created_at,
-                'brand': brand,
-                'brand_tier': brand_tier,
-                'sku': f"SKU-{category_id}{subcategory_id}-{random.randint(10000, 99999)}",
-                'rating': round(adjusted_rating, 1),
-                'review_count': random.randint(0, 100),
-                'margin': round(random.uniform(*cat_props['margin_range']), 2)
+                'brand': self.fake.company(),
+                'sku': f"SKU-{random.randint(10000, 99999)}",
+                'rating': rating,
+                'review_count': random.randint(0, 100)
             })
         
         return pd.DataFrame(products), categories_df, subcategories_df
 
     def generate_customers(self, n_customers=1000, historic_customers_file='de-ecommerce/data/customers.csv'):
-        """Generate customer data with realistic segments and behaviors"""
-        customers = []
+        """
+        Generate customer data with a mix of returning and new customers
         
-        # Define customer segments with characteristics
-        segments = {
-            'High Value': {
-                'income_range': (80000, 150000),
-                'age_range': (35, 60),
-                'purchase_frequency': (3, 8),
-                'avg_order_value': (150, 500),
-                'channel_weights': {'Web': 0.4, 'Mobile App': 0.4, 'Email': 0.2},
-                'education_weights': {
-                    'Bachelor': 0.4, 'Master': 0.3, 'PhD': 0.2, 
-                    'Some College': 0.1
-                },
-                'weight': 0.2  # 20% of customers
-            },
-            'Mid Value': {
-                'income_range': (50000, 79999),
-                'age_range': (25, 45),
-                'purchase_frequency': (2, 5),
-                'avg_order_value': (50, 150),
-                'channel_weights': {'Web': 0.3, 'Mobile App': 0.5, 'Email': 0.2},
-                'education_weights': {
-                    'High School': 0.2, 'Some College': 0.3, 'Bachelor': 0.4, 
-                    'Master': 0.1
-                },
-                'weight': 0.5  # 50% of customers
-            },
-            'Low Value': {
-                'income_range': (20000, 49999),
-                'age_range': (18, 35),
-                'purchase_frequency': (1, 3),
-                'avg_order_value': (20, 50),
-                'channel_weights': {'Web': 0.2, 'Mobile App': 0.6, 'Email': 0.2},
-                'education_weights': {
-                    'High School': 0.4, 'Some College': 0.4, 'Bachelor': 0.2
-                },
-                'weight': 0.3  # 30% of customers
-            }
-        }
-        
-        # Location probabilities (urban areas have more customers)
-        location_weights = {
-            'Urban': 0.6,
-            'Suburban': 0.3,
-            'Rural': 0.1
-        }
-        
+        Parameters:
+            n_customers: Number of total customers to generate
+            historic_customers_file: Path to historic customers CSV file
+            
+        Returns:
+            DataFrame with customer data
+        """
         # Try to load historic customers
         try:
             historic_df = pd.read_csv(historic_customers_file)
             print(f"Loaded {len(historic_df)} historic customers")
+            
+            # Calculate number of returning customers (30% of historic customers)
             n_returning = min(int(len(historic_df) * 0.3), n_customers)
             n_new = n_customers - n_returning
+            
+            print(f"Generating {n_returning} returning customers and {n_new} new customers")
+            
+            # Select random returning customers
             returning_customers = historic_df.sample(n=n_returning).copy()
             
-            # Update returning customers
+            # Update their activity for the recent period
             for idx in returning_customers.index:
+                # Generate new login date within the last 30 days
                 last_login = self.generate_random_date()
                 returning_customers.loc[idx, 'last_login'] = last_login
-                returning_customers.loc[idx, 'is_active'] = True
                 
-            print(f"Processing {n_returning} returning customers")
+                # Maybe update some other fields that might change
+                returning_customers.loc[idx, 'annual_income'] = max(15000, int(np.random.normal(65000, 30000)))
+                returning_customers.loc[idx, 'marital_status'] = random.choice(['Single', 'Married', 'Divorced', 'Widowed'])
+                returning_customers.loc[idx, 'location_type'] = random.choice(['Urban', 'Suburban', 'Rural'])
+                returning_customers.loc[idx, 'preferred_channel'] = random.choice(['Web', 'Mobile App', 'Email'])
+                returning_customers.loc[idx, 'is_active'] = True  # They're active since they're returning
+            
         except FileNotFoundError:
-            print("No historic customers found. Generating all new customers.")
+            print("Historic customers file not found. Generating all new customers.")
             n_returning = 0
             n_new = n_customers
             returning_customers = pd.DataFrame()
         
         # Generate new customers
-        print(f"Generating {n_new} new customers")
+        new_customers = []
         start_id = self.id_offset if not len(returning_customers) else max(returning_customers['customer_id']) + 1
         
         for customer_id in range(start_id, start_id + n_new):
-            # Select customer segment
-            segment = random.choices(
-                list(segments.keys()),
-                weights=[s['weight'] for s in segments.values()]
-            )[0]
-            segment_props = segments[segment]
+            signup_date = self.generate_random_date()
+            last_login = min(signup_date + timedelta(days=random.randint(0, 5)), self.end_date)
             
-            # Generate signup date with exponential distribution (more recent dates more likely)
-            days_ago = int(np.random.exponential(7))  # Most signups in last week
-            days_ago = min(days_ago, 30)  # Cap at 30 days
-            signup_date = self.end_date - timedelta(days=days_ago)
-            
-            # Generate last login with higher frequency for more recent signups
-            days_since_signup = (self.end_date - signup_date).days
-            login_gap = int(np.random.exponential(days_since_signup * 0.3))
-            last_login = min(signup_date + timedelta(days=login_gap), self.end_date)
-            
-            # Generate age within segment range
-            age = random.randint(*segment_props['age_range'])
-            
-            # Select preferred channel based on segment weights
-            preferred_channel = random.choices(
-                list(segment_props['channel_weights'].keys()),
-                weights=list(segment_props['channel_weights'].values())
-            )[0]
-            
-            # Select education based on segment weights
-            education = random.choices(
-                list(segment_props['education_weights'].keys()),
-                weights=list(segment_props['education_weights'].values())
-            )[0]
-            
-            # Select location type based on weights
-            location_type = random.choices(
-                list(location_weights.keys()),
-                weights=list(location_weights.values())
-            )[0]
-            
-            customers.append({
+            new_customers.append({
                 'customer_id': customer_id,
                 'email': self.fake.email(),
                 'first_name': self.fake.first_name(),
                 'last_name': self.fake.last_name(),
-                'age': age,
+                'age': max(18, min(90, int(np.random.normal(45, 15)))),
                 'gender': random.choice(['M', 'F', 'Other']),
-                'annual_income': random.randint(*segment_props['income_range']),
-                'customer_segment': segment,
+                'annual_income': max(15000, int(np.random.normal(65000, 30000))),
                 'marital_status': random.choice(['Single', 'Married', 'Divorced', 'Widowed']),
-                'education': education,
-                'location_type': location_type,
+                'education': random.choice(['High School', 'Some College', 'Bachelor', 'Master', 'PhD']),
+                'location_type': random.choice(['Urban', 'Suburban', 'Rural']),
                 'city': self.fake.city(),
                 'state': self.fake.state(),
                 'country': 'USA',
                 'signup_date': signup_date,
                 'last_login': last_login,
-                'preferred_channel': preferred_channel,
-                'is_active': True,
-                'expected_purchase_frequency': random.randint(*segment_props['purchase_frequency']),
-                'expected_order_value': round(random.uniform(*segment_props['avg_order_value']), 2)
+                'preferred_channel': random.choice(['Web', 'Mobile App', 'Email']),
+                'is_active': random.random() > 0.1
             })
         
-        # Combine new and returning customers
-        new_customers_df = pd.DataFrame(customers)
+        # Combine returning and new customers
+        new_customers_df = pd.DataFrame(new_customers)
         final_customers_df = pd.concat([returning_customers, new_customers_df], ignore_index=True)
         
         print(f"Generated total of {len(final_customers_df)} customers")
@@ -572,90 +295,104 @@ class RecentEcommerceDataGenerator:
         return final_customers_df
 
     def generate_orders(self, customers_df, products_df):
-        """Generate order data for the last 30 days with realistic patterns"""
+        """Generate order data for the last 30 days"""
         orders = []
         order_items = []
         order_id = 1 + self.id_offset
         
-        # Add daily pattern factors
-        hourly_patterns = {
-            0: 0.2,  # 12 AM
-            1: 0.1,  # 1 AM
-            2: 0.1,
-            3: 0.1,
-            4: 0.1,
-            5: 0.2,
-            6: 0.3,
-            7: 0.5,
-            8: 0.7,  # Morning rush
-            9: 1.0,
-            10: 1.2,
-            11: 1.3,
-            12: 1.4,  # Lunch peak
-            13: 1.3,
-            14: 1.2,
-            15: 1.1,
-            16: 1.2,
-            17: 1.3,  # Evening rush
-            18: 1.4,
-            19: 1.5,  # Prime time
-            20: 1.4,
-            21: 1.2,
-            22: 0.8,
-            23: 0.4   # Late night
+        # Seasonality patterns
+        seasonality = {
+            1: 1.2,   # Post-holiday sales
+            2: 0.8,   # Slow month
+            3: 0.9,   # Spring beginning
+            4: 1.0,   # Regular
+            5: 1.1,   # Pre-summer
+            6: 1.15,  # Summer start
+            7: 1.05,  # Mid-summer
+            8: 1.1,   # Back to school
+            9: 1.0,   # Regular
+            10: 1.1,  # Pre-holiday
+            11: 1.3,  # Black Friday
+            12: 1.5   # Holiday season
         }
         
-        # Day of week factors
+        # Day of week patterns
         daily_factors = {
             0: 0.7,  # Monday
-            1: 0.8,
-            2: 0.9,
-            3: 1.0,
-            4: 1.3,  # Friday boost
-            5: 1.5,  # Saturday peak
+            1: 0.8,  # Tuesday
+            2: 0.9,  # Wednesday
+            3: 1.0,  # Thursday
+            4: 1.3,  # Friday
+            5: 1.5,  # Saturday
             6: 1.1   # Sunday
         }
         
-        # Special events/promotions (simulated for the last 30 days)
-        special_events = {
-            5: 1.3,   # Flash sale
-            12: 1.4,  # Mid-month promotion
-            15: 1.5,  # Payday effect
-            25: 1.3,  # End-of-month sale
-        }
-        
         for _, customer in customers_df.iterrows():
-            # Customer segment based frequency
-            if 'customer_segment' in customer:
-                base_frequency = {
-                    'High Value': 3,
-                    'Mid Value': 2,
-                    'Low Value': 1
-                }.get(customer['customer_segment'], 2)
-            else:
-                base_frequency = 2
-                
-            # Adjust frequency based on customer history
-            if customer['signup_date'] < self.start_date:
-                base_frequency *= 1.2  # Returning customers more likely to order
-                
-            num_orders = np.random.poisson(base_frequency)
+            # Order frequency based on customer segment
+            base_frequency = {
+                'High Value': 8,
+                'Mid Value': 5,
+                'Low Value': 3
+            }.get(customer['customer_segment'], 5)
             
-            for _ in range(num_orders):
-                # Generate order date with realistic patterns
-                order_date = self.generate_random_date()
-                hour = random.choices(
-                    range(24),
-                    weights=[hourly_patterns[h] for h in range(24)]
-                )[0]
+            # Reduce frequency for 30-day period
+            base_frequency = max(1, int(base_frequency * (30/365)))
+            
+            # Add randomness to frequency
+            order_count = np.random.poisson(base_frequency)
+            
+            for _ in range(order_count):
+                # Generate order date with patterns
+                order_date = max(
+                    customer['signup_date'],
+                    customer['signup_date'] + timedelta(
+                        days=random.randint(0, (self.end_date - customer['signup_date']).days)
+                    )
+                )
                 
-                order_date = order_date.replace(hour=hour)
-                
-                # Apply daily and special event factors
+                # Apply seasonality and day of week factors
+                season_factor = seasonality[order_date.month]
                 day_factor = daily_factors[order_date.weekday()]
-                special_factor = special_events.get(order_date.day, 1.0)
                 
-                # Status based on order date
+                # Generate order items
+                num_items = np.random.poisson(2) + 1
+                
+                # Product selection with category affinity
+                if random.random() < 0.7:  # 70% chance to buy from preferred category
+                    preferred_category = random.randint(1, 5)
+                    matching_products = products_df[
+                        products_df['category_id'] == preferred_category
+                    ]
+                    if len(matching_products) > 0:
+                        order_products = matching_products.sample(
+                            n=min(num_items, len(matching_products))
+                        )
+                    else:
+                        order_products = products_df.sample(n=num_items)
+                else:
+                    order_products = products_df.sample(n=num_items)
+                
+                shipping_cost = round(random.uniform(5, 20), 2)
+                total_amount = shipping_cost
+                
+                # Generate order items
+                for _, product in order_products.iterrows():
+                    quantity = np.random.poisson(1.5) + 1
+                    price = product['sale_price']
+                    item_total = quantity * price
+                    total_amount += item_total
+                    
+                    order_items.append({
+                        'order_item_id': len(order_items) + 1 + self.id_offset,
+                        'order_id': order_id,
+                        'product_id': product['product_id'],
+                        'quantity': quantity,
+                        'unit_price': round(price, 2),
+                        'total_price': round(item_total, 2),
+                        'created_at': order_date
+                    })
+                
+                # Order status based on date
                 days_since_order = (self.end_date - order_date).days
                 if days_since_order < 1:
                     status = 'Pending'
@@ -666,67 +403,6 @@ class RecentEcommerceDataGenerator:
                 else:
                     status = 'Delivered'
                 
-                # Generate order items with realistic patterns
-                base_items = np.random.poisson(1.5) + 1
-                num_items = max(1, int(base_items * day_factor * special_factor))
-                
-                # Product selection logic
-                if random.random() < 0.7:  # 70% chance of category affinity
-                    preferred_category = random.randint(1, 5)
-                    matching_products = products_df[
-                        products_df['category_id'] == preferred_category
-                    ]
-                    if len(matching_products) > 0:
-                        order_products = matching_products.sample(
-                            n=min(num_items, len(matching_products)),
-                            replace=True
-                        )
-                    else:
-                        order_products = products_df.sample(
-                            n=min(num_items, len(products_df)),
-                            replace=True
-                        )
-                else:
-                    order_products = products_df.sample(
-                        n=min(num_items, len(products_df)),
-                        replace=True
-                    )
-                
-                shipping_cost = round(random.uniform(5, 20), 2)
-                total_amount = shipping_cost
-                
-                for _, product in order_products.iterrows():
-                    quantity = random.randint(1, 3)
-                    
-                    # Apply time-based pricing
-                    base_price = product['sale_price']
-                    time_factor = hourly_patterns[hour] * day_factor * special_factor
-                    adjusted_price = base_price * (0.9 + (time_factor * 0.2))
-                    
-                    item_total = quantity * adjusted_price
-                    total_amount += item_total
-                    
-                    order_items.append({
-                        'order_item_id': len(order_items) + 1 + self.id_offset,
-                        'order_id': order_id,
-                        'product_id': product['product_id'],
-                        'quantity': quantity,
-                        'unit_price': round(adjusted_price, 2),
-                        'total_price': round(item_total, 2),
-                        'created_at': order_date
-                    })
-                
-                # Payment method distribution
-                payment_methods = {
-                    'Credit Card': 0.6,
-                    'PayPal': 0.3,
-                    'Debit Card': 0.1
-                }
-                payment_method = random.choices(
-                    list(payment_methods.keys()),
-                    weights=list(payment_methods.values())
-                )[0]
-                
                 orders.append({
                     'order_id': order_id,
                     'customer_id': customer['customer_id'],
@@ -734,7 +410,7 @@ class RecentEcommerceDataGenerator:
                     'status': status,
                     'total_amount': round(total_amount, 2),
                     'shipping_cost': shipping_cost,
-                    'payment_method': payment_method,
+                    'payment_method': random.choice(['Credit Card', 'PayPal', 'Debit Card']),
                     'shipping_address': self.fake.street_address(),
                     'billing_address': self.fake.street_address(),
                     'created_at': order_date,
@@ -746,218 +422,250 @@ class RecentEcommerceDataGenerator:
         return pd.DataFrame(orders), pd.DataFrame(order_items)
 
     def generate_customer_interactions(self, customers_df, products_df):
-        """Generate customer interactions for the last 30 days with realistic patterns"""
+        """Generate customer interactions for the last 30 days"""
         events = []
         
-        # Define time-of-day patterns
-        hourly_patterns = {
-            'desktop': {  # Peak during work hours
-                'distribution': [0.01, 0.01, 0.01, 0.01, 0.02, 0.05, 0.08, 0.10, 0.12, 0.11, 
-                            0.10, 0.09, 0.08, 0.09, 0.10, 0.08, 0.06, 0.04, 0.03, 0.02, 
-                            0.02, 0.01, 0.01, 0.01]
-            },
-            'mobile': {   # More evening activity
-                'distribution': [0.02, 0.01, 0.01, 0.01, 0.01, 0.02, 0.04, 0.06, 0.07, 0.08,
-                            0.07, 0.08, 0.09, 0.08, 0.07, 0.08, 0.09, 0.10, 0.12, 0.11,
-                            0.09, 0.08, 0.05, 0.03]
-            },
-            'tablet': {   # Evening peak
-                'distribution': [0.02, 0.01, 0.01, 0.01, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06,
-                            0.07, 0.08, 0.07, 0.08, 0.07, 0.08, 0.09, 0.11, 0.13, 0.12,
-                            0.10, 0.08, 0.06, 0.03]
-            }
+        # Time-of-day patterns
+        hourly_weights = [
+            0.01, 0.01, 0.005, 0.005, 0.01, 0.02,  # 0-5
+            0.03, 0.05, 0.07, 0.08, 0.09, 0.10,    # 6-11
+            0.11, 0.10, 0.09, 0.08, 0.07, 0.06,    # 12-17
+            0.08, 0.09, 0.08, 0.05, 0.03, 0.02     # 18-23
+        ]
+        
+        # Device preferences by hour
+        device_by_hour = {
+            'morning': {'desktop': 0.4, 'mobile': 0.5, 'tablet': 0.1},
+            'workday': {'desktop': 0.6, 'mobile': 0.3, 'tablet': 0.1},
+            'evening': {'desktop': 0.2, 'mobile': 0.6, 'tablet': 0.2}
         }
-
-        # Event type transition probabilities
+        
+        # Event flow with realistic browsing patterns
         event_flow = {
-            'view': {'cart_add': 0.3, 'view': 0.6, 'search': 0.1},
-            'cart_add': {'purchase': 0.4, 'cart_remove': 0.2, 'view': 0.4},
-            'cart_remove': {'view': 0.7, 'search': 0.3},
-            'search': {'view': 0.8, 'cart_add': 0.2},
-            'purchase': {'view': 0.7, 'search': 0.3},
-            'start': {'view': 0.7, 'search': 0.3}
+            'view': {'cart_add': 0.2, 'view': 0.7, 'search': 0.1},
+            'cart_add': {'purchase': 0.3, 'cart_remove': 0.2, 'view': 0.5},
+            'cart_remove': {'view': 0.8, 'search': 0.2},
+            'search': {'view': 0.9, 'cart_add': 0.1}
         }
-
+        
         for _, customer in customers_df.iterrows():
-            # Determine base interaction frequency based on customer segment
-            if 'customer_segment' in customer:
-                base_frequency = {
-                    'High Value': 15,
-                    'Mid Value': 10,
-                    'Low Value': 5
-                }.get(customer['customer_segment'], 10)
+            # Vary session count by customer segment
+            if customer['customer_segment'] == 'High Value':
+                session_count = np.random.poisson(12)
+            elif customer['customer_segment'] == 'Mid Value':
+                session_count = np.random.poisson(8)
             else:
-                base_frequency = 10
-
-            # Higher frequency for returning customers
-            if customer['signup_date'] < self.start_date:
-                base_frequency *= 1.2
-
-            num_sessions = np.random.poisson(base_frequency)
+                session_count = np.random.poisson(4)
             
-            for _ in range(num_sessions):
+            for _ in range(session_count):
                 session_id = f"session_{random.randint(10000, 99999)}"
                 
-                # Device selection based on time and customer preferences
-                device_weights = {'desktop': 0.4, 'mobile': 0.45, 'tablet': 0.15}
-                if customer['preferred_channel'] == 'Mobile App':
-                    device_weights = {'desktop': 0.2, 'mobile': 0.7, 'tablet': 0.1}
+                # Generate session start time
+                hour = random.choices(range(24), weights=hourly_weights)[0]
+                
+                # Select device based on time
+                if 6 <= hour <= 11:
+                    device_weights = device_by_hour['morning']
+                elif 12 <= hour <= 17:
+                    device_weights = device_by_hour['workday']
+                else:
+                    device_weights = device_by_hour['evening']
                 
                 device_type = random.choices(
-                    list(device_weights.keys()),
-                    weights=list(device_weights.values())
+                    ['desktop', 'mobile', 'tablet'],
+                    weights=[device_weights[d] for d in ['desktop', 'mobile', 'tablet']]
                 )[0]
                 
-                # Generate session start time
-                base_date = self.generate_random_date()
-                hour_weights = hourly_patterns[device_type]['distribution']
-                hour = random.choices(range(24), weights=hour_weights)[0]
-                minute = random.randint(0, 59)
+                # Generate session events
+                event_time = customer['signup_date'] + timedelta(
+                    days=random.randint(0, (self.end_date - customer['signup_date']).days),
+                    hours=hour,
+                    minutes=random.randint(0, 59)
+                )
                 
-                session_start = base_date.replace(hour=hour, minute=minute)
+                current_event = 'view'
+                viewed_products = []
                 
                 # Generate sequence of events
-                current_event = 'start'
-                event_time = session_start
-                num_events = np.random.poisson(4) + 1  # At least one event per session
+                num_events = np.random.poisson(4) + 1
                 
                 for _ in range(num_events):
-                    # Choose next event based on transition probabilities
-                    next_event = random.choices(
-                        list(event_flow[current_event].keys()),
-                        weights=list(event_flow[current_event].values())
+                    # Product selection with category affinity
+                    if viewed_products and random.random() < 0.7:
+                        # 70% chance to view related product
+                        last_product = products_df[
+                            products_df['product_id'] == viewed_products[-1]
+                        ].iloc[0]
+                        related_products = products_df[
+                            products_df['category_id'] == last_product['category_id']
+                        ]
+                        product = related_products.sample().iloc[0]
+                    else:
+                        product = products_df.sample().iloc[0]
+                    
+                    viewed_products.append(product['product_id'])
+                    
+                    events.append({
+                        'event_id': len(events) + 1 + self.id_offset,
+                        'customer_id': customer['customer_id'],
+                        'product_id': product['product_id'],
+                        'event_type': current_event,
+                        'event_date': event_time,
+                        'device_type': device_type,
+                        'session_id': session_id,
+                        'created_at': event_time
+                    })
+                    
+                    # Choose next event
+                    next_event_probs = event_flow[current_event]
+                    current_event = random.choices(
+                        list(next_event_probs.keys()),
+                        weights=list(next_event_probs.values())
                     )[0]
                     
-                    if next_event != 'start':
-                        # Product selection logic
-                        if random.random() < 0.7:  # 70% chance to view related products
-                            recent_views = [e['product_id'] for e in events[-3:] 
-                                        if e['event_type'] == 'view']
-                            if recent_views:
-                                related_category = products_df[
-                                    products_df['product_id'].isin(recent_views)
-                                ]['category_id'].iloc[0]
-                                matching_products = products_df[
-                                    products_df['category_id'] == related_category
-                                ]
-                            else:
-                                matching_products = products_df
-                        else:
-                            matching_products = products_df
-                        
-                        product = matching_products.sample(n=1).iloc[0]
-                        
-                        events.append({
-                            'event_id': len(events) + 1 + self.id_offset,
-                            'customer_id': customer['customer_id'],
-                            'product_id': product['product_id'],
-                            'event_type': next_event,
-                            'event_date': event_time,
-                            'device_type': device_type,
-                            'session_id': session_id,
-                            'created_at': event_time
-                        })
-                    
                     # Increment time realistically
-                    event_time += timedelta(
-                        seconds=random.randint(10, 300)  # 10 seconds to 5 minutes
-                    )
-                    current_event = next_event
+                    event_time += timedelta(minutes=random.randint(1, 10))
         
         return pd.DataFrame(events)
     
-    def generate_review_text(self, rating, product_type):
-        """Generate realistic review text based on rating"""
+    def generate_review_text(self, rating, product_info, days_to_review):
+        """Generate review text with appropriate context for recent reviews"""
+        category_specific_aspects = {
+            'Electronics': {
+                'positive': ["battery life is impressive", "interface is intuitive", "fast performance", 
+                            "build quality is premium", "setup was easy", "great features"],
+                'negative': ["battery drains quickly", "confusing interface", "slow performance", 
+                            "feels cheaply made", "difficult setup", "missing features"]
+            },
+            'Fashion': {
+                'positive': ["perfect fit", "high quality material", "beautiful design", 
+                            "comfortable to wear", "well made", "true to size"],
+                'negative': ["poor fit", "cheap material", "looks different from picture", 
+                            "uncomfortable", "poorly made", "sizing is off"]
+            },
+            'Home & Living': {
+                'positive': ["great quality", "looks beautiful", "easy to assemble", 
+                            "perfect size", "well designed", "durable"],
+                'negative': ["poor quality", "looks cheap", "difficult assembly", 
+                            "wrong size", "bad design", "broke easily"]
+            }
+        }
+
+        # Time-based context phrases
+        time_context = {
+            'quick': ["Just got this", "After quick testing", "First impression", 
+                    "Day one review", "Initial thoughts"],
+            'short': ["After a few days", "Short term use", "Early review", 
+                    "Quick update", "First week thoughts"]
+        }
+
+        # Select appropriate context
+        time_phrase = random.choice(time_context['quick'] if days_to_review <= 2 else time_context['short'])
+        
+        # Get category-specific aspects
+        category = product_info.get('category_name', 'Electronics')
+        aspects = category_specific_aspects.get(category, category_specific_aspects['Electronics'])
+        
         if rating >= 4:
-            template = random.choice(self.review_templates['positive'])
-            aspect = random.choice(self.positive_aspects)
-            another = random.choice(self.positive_aspects)
-            return template.format(
-                product_type=product_type,
-                positive_aspect=aspect,
-                another_positive=another
+            templates = [
+                "{time_phrase}: {positive_aspect}. {conclusion}",
+                "{time_phrase} and I'm impressed. {positive_aspect} and {another_positive}. {conclusion}",
+                "{positive_aspect}. {time_phrase} and {another_positive}. {conclusion}",
+                "Great purchase! {time_phrase} - {positive_aspect}. {conclusion}"
+            ]
+            positive_aspects = aspects['positive']
+            conclusions = ["Highly recommend!", "Very satisfied!", "Great product!", "Excellent purchase!"]
+            
+            return random.choice(templates).format(
+                time_phrase=time_phrase,
+                positive_aspect=random.choice(positive_aspects),
+                another_positive=random.choice(positive_aspects),
+                conclusion=random.choice(conclusions)
             )
+        
         elif rating >= 3:
-            template = random.choice(self.review_templates['neutral'])
-            return template.format(
-                product_type=product_type,
-                positive_aspect=random.choice(self.positive_aspects),
-                negative_aspect=random.choice(self.negative_aspects),
-                neutral_comment=random.choice(self.neutral_comments)
+            templates = [
+                "{time_phrase} and it's decent. {positive_aspect}, but {negative_aspect}. {conclusion}",
+                "{time_phrase}: {positive_aspect}. However, {negative_aspect}. {conclusion}",
+                "Mixed feelings. {time_phrase} - {positive_aspect}, though {negative_aspect}. {conclusion}"
+            ]
+            conclusions = ["It's okay.", "Might work for others.", "Still evaluating.", "We'll see how it holds up."]
+            
+            return random.choice(templates).format(
+                time_phrase=time_phrase,
+                positive_aspect=random.choice(aspects['positive']),
+                negative_aspect=random.choice(aspects['negative']),
+                conclusion=random.choice(conclusions)
             )
+        
         else:
-            template = random.choice(self.review_templates['negative'])
-            return template.format(
-                product_type=product_type,
-                negative_aspect=random.choice(self.negative_aspects)
+            templates = [
+                "{time_phrase} and I'm disappointed. {negative_aspect}. {conclusion}",
+                "Not happy with this purchase. {time_phrase} and {negative_aspect}. {conclusion}",
+                "{time_phrase}: {negative_aspect}. Would not recommend. {conclusion}"
+            ]
+            conclusions = ["Returning this.", "Save your money.", "Looking for alternatives.", "Not worth it."]
+            
+            return random.choice(templates).format(
+                time_phrase=time_phrase,
+                negative_aspect=random.choice(aspects['negative']),
+                conclusion=random.choice(conclusions)
             )
 
     def generate_reviews(self, orders_df, order_items_df, products_df, customers_df):
-        """Generate reviews with realistic patterns and timing"""
+        """Generate reviews with rich text content for recent data"""
         reviews_data = []
         review_id = 1 + self.id_offset
         
-        # Define review probability by customer segment
+        # Review probability by customer segment and price tier
         review_prob = {
-            'High Value': 0.8,
-            'Mid Value': 0.6,
-            'Low Value': 0.4
+            'High Value': {'base': 0.8, 'price_sensitivity': 0.1},
+            'Mid Value': {'base': 0.6, 'price_sensitivity': 0.2},
+            'Low Value': {'base': 0.4, 'price_sensitivity': 0.3}
         }
         
-        # Define rating distributions by price range
-        def get_rating_distribution(price):
-            if price > 500:  # High-end products
-                return [0.02, 0.03, 0.10, 0.35, 0.50]  # Higher expectations
-            elif price > 100:  # Mid-range products
-                return [0.05, 0.10, 0.15, 0.40, 0.30]
-            else:  # Budget products
-                return [0.10, 0.15, 0.25, 0.30, 0.20]  # More varied ratings
-        
-        # Define review delay patterns
-        def get_review_delay():
-            delays = [1, 2, 3, 4, 5, 6, 7, 14, 21, 30]
-            weights = [0.3, 0.2, 0.15, 0.1, 0.05, 0.05, 0.05, 0.05, 0.03, 0.02]
-            return random.choices(delays, weights=weights)[0]
+        # Rating distributions by price range and customer segment
+        def get_rating_params(price, segment):
+            if segment == 'High Value':
+                return (4.2, 0.8) if price > 500 else (4.0, 0.7)
+            elif segment == 'Mid Value':
+                return (4.0, 0.9) if price > 500 else (3.8, 0.8)
+            else:
+                return (3.8, 1.0) if price > 500 else (3.5, 0.9)
         
         for _, order in orders_df.iterrows():
             if order['status'] != 'Delivered':
                 continue
                 
-            customer = customers_df[
-                customers_df['customer_id'] == order['customer_id']
-            ].iloc[0]
-            
-            # Determine review probability
-            base_prob = review_prob.get(
-                customer.get('customer_segment', 'Mid Value'),
-                0.5
-            )
-            
-            # Adjust probability based on customer history
-            if customer['signup_date'] < self.start_date:
-                base_prob *= 1.2  # More likely to review if returning customer
+            customer = customers_df[customers_df['customer_id'] == order['customer_id']].iloc[0]
+            segment = customer.get('customer_segment', 'Mid Value')
             
             order_items = order_items_df[order_items_df['order_id'] == order['order_id']]
             
             for _, item in order_items.iterrows():
-                if random.random() < base_prob:
-                    product = products_df[
-                        products_df['product_id'] == item['product_id']
-                    ].iloc[0]
+                product = products_df[products_df['product_id'] == item['product_id']].iloc[0]
+                
+                # Calculate review probability
+                base_prob = review_prob[segment]['base']
+                price_factor = 1 + (review_prob[segment]['price_sensitivity'] * 
+                                (1 if product['base_price'] > 100 else -1))
+                final_prob = min(0.95, base_prob * price_factor)
+                
+                if random.random() < final_prob:
+                    # Generate rating based on customer segment and price
+                    mean, std = get_rating_params(product['base_price'], segment)
+                    review_score = round(min(5, max(1, np.random.normal(mean, std))), 1)
                     
-                    # Get rating distribution based on product price
-                    rating_dist = get_rating_distribution(product['base_price'])
-                    review_score = random.choices(range(1, 6), weights=rating_dist)[0]
+                    # Calculate review date with realistic delay for recent data
+                    days_to_review = int(np.random.exponential(3))  # Most reviews within 3 days for recent data
+                    days_to_review = min(days_to_review, 7)  # Cap at 7 days for recent data
+                    review_date = order['order_date'] + timedelta(days=days_to_review)
                     
-                    # Calculate review date
-                    review_delay = get_review_delay()
-                    review_date = order['order_date'] + timedelta(days=review_delay)
-                    
-                    # Only include if review date is within our 30-day window
                     if review_date <= self.end_date:
                         review_text = self.generate_review_text(
                             review_score,
-                            product['product_name']
+                            product,
+                            days_to_review
                         )
                         
                         reviews_data.append({
@@ -972,18 +680,20 @@ class RecentEcommerceDataGenerator:
                             'verified_purchase': True,
                             'created_at': review_date
                         })
-                        
                         review_id += 1
-                        
-                        # Update product rating and review count
-                        mask = products_df['product_id'] == product['product_id']
-                        products_df.loc[mask, 'review_count'] += 1
-                        current_rating = products_df.loc[mask, 'rating'].iloc[0]
-                        current_count = products_df.loc[mask, 'review_count'].iloc[0]
-                        new_rating = ((current_rating * (current_count - 1)) + review_score) / current_count
-                        products_df.loc[mask, 'rating'] = round(new_rating, 1)
+            
+        reviews_df = pd.DataFrame(reviews_data)
         
-        return pd.DataFrame(reviews_data), products_df
+        # Update product ratings
+        for pid in products_df['product_id'].unique():
+            product_reviews = reviews_df[reviews_df['product_id'] == pid]
+            if len(product_reviews) > 0:
+                products_df.loc[products_df['product_id'] == pid, 'rating'] = \
+                    round(product_reviews['review_score'].mean(), 1)
+                products_df.loc[products_df['product_id'] == pid, 'review_count'] = \
+                    len(product_reviews)
+        
+        return reviews_df, products_df
 
     def generate_all_data(self, n_customers=1000, n_products=1000):
         """Generate all e-commerce data for the last 30 days"""
