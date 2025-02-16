@@ -15,8 +15,44 @@ from pathlib import Path
 
 load_dotenv()
 
+def set_all_seeds(seed=42):
+    """
+    Set all seeds to ensure reproducibility across all random number generators
+    """
+    import random
+    import numpy as np
+    import torch
+    import os
+    
+    # Python's built-in random
+    random.seed(seed)
+    
+    # NumPy
+    np.random.seed(seed)
+    
+    # Faker (if used)
+    from faker import Faker
+    Faker.seed(seed)
+    
+    # PyTorch (if used)
+    torch.manual_seed(seed)
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed(seed)
+        torch.cuda.manual_seed_all(seed)
+        torch.backends.cudnn.deterministic = True
+        torch.backends.cudnn.benchmark = False
+    
+    # Set Python hash seed
+    os.environ['PYTHONHASHSEED'] = str(seed)
+
 class EcommerceDataGenerator:
-    def __init__(self, start_date=datetime(2023, 1, 1), end_date=datetime(2025, 1, 31)):
+    def __init__(self, start_date=datetime(2023, 1, 1), end_date=datetime(2025, 1, 31), seed=42):
+        # Set all seeds first
+        set_all_seeds(seed)
+        
+        # Store seed for reference
+        self.seed = seed
+        
         self.start_date = start_date
         self.end_date = end_date
         self.fake = Faker()
@@ -80,89 +116,34 @@ class EcommerceDataGenerator:
             "Fair for the price",
             "Could be better"
         ]
-
-    def generate_product_categories(self):
-        """Generate product categories with realistic market segments"""
+    
+    def generate_categories(self):
+        """Generate product categories with simplified output structure"""
         categories = {
-            'Electronics': {
-                'subcategories': [
-                    'Smartphones', 'Laptops', 'Accessories', 'Tablets', 'Wearables'
-                ],
-                'market_share': 0.25,
-                'growth_rate': 0.15,
-                'price_range': (50, 2000),
-                'seasonality': {'high': [11, 12], 'medium': [7, 8], 'low': [2, 3]}
-            },
-            'Fashion': {
-                'subcategories': [
-                    "Men's Clothing", "Women's Clothing", "Children's Clothing", 'Shoes', 'Accessories'
-                ],
-                'market_share': 0.20,
-                'growth_rate': 0.12,
-                'price_range': (15, 500),
-                'seasonality': {'high': [12, 7], 'medium': [3, 9], 'low': [1, 2]}
-            },
-            'Home & Living': {
-                'subcategories': [
-                    'Furniture', 'Kitchen', 'Decor', 'Bedding', 'Storage'
-                ],
-                'market_share': 0.18,
-                'growth_rate': 0.10,
-                'price_range': (20, 2500),
-                'seasonality': {'high': [11, 12], 'medium': [5, 6], 'low': [2, 3]}
-            },
-            'Beauty': {
-                'subcategories': [
-                    'Skincare', 'Makeup', 'Haircare', 'Fragrances', 'Tools'
-                ],
-                'market_share': 0.15,
-                'growth_rate': 0.14,
-                'price_range': (5, 300),
-                'seasonality': {'high': [12, 5], 'medium': [2, 6], 'low': [8, 9]}
-            },
-            'Sports': {
-                'subcategories': [
-                    'Exercise Equipment', 'Sportswear', 'Outdoor Gear', 'Accessories', 'Footwear'
-                ],
-                'market_share': 0.12,
-                'growth_rate': 0.09,
-                'price_range': (10, 1500),
-                'seasonality': {'high': [5, 6], 'medium': [3, 4], 'low': [11, 12]}
-            }
+            'Electronics': ['Smartphones', 'Laptops', 'Accessories', 'Tablets', 'Wearables'],
+            'Fashion': ['Men\'s Clothing', 'Women\'s Clothing', 'Children\'s Clothing', 'Shoes', 'Accessories'],
+            'Home & Living': ['Furniture', 'Kitchen', 'Decor', 'Bedding', 'Storage'],
+            'Beauty': ['Skincare', 'Makeup', 'Haircare', 'Fragrances', 'Tools'],
+            'Sports': ['Exercise Equipment', 'Sportswear', 'Outdoor Gear', 'Accessories', 'Footwear']
         }
         
         category_data = []
         subcategory_data = []
         
-        total_market = 1000000  # Base market size
-        
-        for cat_id, (category, props) in enumerate(categories.items(), 1):
-            # Calculate category metrics
-            market_size = total_market * props['market_share']
-            monthly_growth = props['growth_rate'] / 12
-            
+        for cat_id, (category, subcategories) in enumerate(categories.items(), 1):
+            # Generate category record
             category_data.append({
                 'category_id': cat_id,
                 'category_name': category,
-                'market_share': props['market_share'],
-                'growth_rate': props['growth_rate'],
-                'price_range_min': props['price_range'][0],
-                'price_range_max': props['price_range'][1],
                 'created_at': self.start_date
             })
             
-            # Generate subcategories with varying weights
-            for sub_id, subcategory in enumerate(props['subcategories'], 1):
-                # Calculate subcategory metrics
-                sub_market_share = random.uniform(0.05, 0.15)  # Within category
-                sub_growth = props['growth_rate'] * random.uniform(0.8, 1.2)  # Vary from category
-                
+            # Generate subcategory records
+            for sub_id, subcategory in enumerate(subcategories, 1):
                 subcategory_data.append({
                     'subcategory_id': (cat_id * 100) + sub_id,
                     'category_id': cat_id,
                     'subcategory_name': subcategory,
-                    'market_share': sub_market_share,
-                    'growth_rate': sub_growth,
                     'created_at': self.start_date
                 })
         
@@ -170,9 +151,9 @@ class EcommerceDataGenerator:
 
     def generate_products(self, n_products=1000):
         """Generate product catalog with category-appropriate names and descriptions"""
-        categories_df, subcategories_df = self.generate_product_categories()
+        categories_df, subcategories_df = self.generate_categories()
         
-                # Category-specific product patterns
+        # Category-specific product patterns
         category_patterns = {
             'Electronics': {
                 'name_patterns': [
@@ -526,18 +507,13 @@ class EcommerceDataGenerator:
                 weights=list(channel_weights.values())
             )[0]
             
-            # For historic data, spread signup dates across the entire date range
+            # Generate signup date
             days_range = (self.end_date - self.start_date).days
             signup_date = self.start_date + timedelta(days=random.randint(0, days_range))
-            
-            # Determine customer segment based on income and engagement
-            if income > 80000:
-                segment = 'High Value'
-            elif income > 50000:
-                segment = 'Mid Value'
-            else:
-                segment = 'Low Value'
 
+            # Calculate segment but don't include in final data
+            segment = 'High Value' if income > 80000 else ('Mid Value' if income > 50000 else 'Low Value')
+            
             customers.append({
                 'customer_id': customer_id,
                 'email': self.fake.email(),
@@ -546,7 +522,6 @@ class EcommerceDataGenerator:
                 'age': age,
                 'gender': random.choice(['M', 'F', 'Other']),
                 'annual_income': income,
-                'customer_segment': segment,
                 'marital_status': random.choice(['Single', 'Married', 'Divorced', 'Widowed']),
                 'education': education,
                 'location_type': location_type,
@@ -711,21 +686,14 @@ class EcommerceDataGenerator:
             'cart_add': {'view': 0.3, 'cart_remove': 0.2, 'purchase': 0.2, 'search': 0.3},
             'cart_remove': {'view': 0.7, 'search': 0.3},
             'search': {'view': 0.8, 'cart_add': 0.2},
-            'purchase': {'view': 0.6, 'search': 0.4},  # After purchase, users often continue browsing
+            'purchase': {'view': 0.6, 'search': 0.4},
             'start': {'view': 0.7, 'search': 0.3}
         }
         
         for _, customer in customers_df.iterrows():
-            # Number of sessions varies by customer segment
-            if 'customer_segment' in customer:
-                if customer['customer_segment'] == 'High Value':
-                    num_sessions = np.random.poisson(15)
-                elif customer['customer_segment'] == 'Mid Value':
-                    num_sessions = np.random.poisson(10)
-                else:
-                    num_sessions = np.random.poisson(5)
-            else:
-                num_sessions = np.random.poisson(10)
+            # Base number of sessions - using income as a rough proxy for engagement
+            base_sessions = max(5, min(15, int(customer['annual_income'] / 10000)))
+            num_sessions = np.random.poisson(base_sessions)
             
             for _ in range(num_sessions):
                 session_id = f"session_{random.randint(10000, 99999)}"
@@ -749,7 +717,6 @@ class EcommerceDataGenerator:
                 num_events = np.random.poisson(4) + 1  # At least one event per session
                 
                 for _ in range(num_events):
-                    # Choose next event based on transition probabilities
                     if current_event in event_flow:
                         next_event_probs = event_flow[current_event]
                         next_event = random.choices(
@@ -757,28 +724,11 @@ class EcommerceDataGenerator:
                             weights=list(next_event_probs.values())
                         )[0]
                     else:
-                        next_event = 'view'  # Default to view if current_event not in flow
+                        next_event = 'view'
                     
                     if next_event != 'start':
-                        # Select product based on customer preferences
-                        if random.random() < 0.7 and 'customer_segment' in customer:
-                            # 70% chance to view products matching customer segment
-                            if customer['customer_segment'] == 'High Value':
-                                matching_products = products_df[products_df['base_price'] > 100]
-                            elif customer['customer_segment'] == 'Mid Value':
-                                matching_products = products_df[
-                                    (products_df['base_price'] >= 50) & 
-                                    (products_df['base_price'] <= 100)
-                                ]
-                            else:
-                                matching_products = products_df[products_df['base_price'] < 50]
-                            
-                            if len(matching_products) > 0:
-                                product = matching_products.sample(n=1).iloc[0]
-                            else:
-                                product = products_df.sample(n=1).iloc[0]
-                        else:
-                            product = products_df.sample(n=1).iloc[0]
+                        # Select product based on price range affinity
+                        product = products_df.sample(n=1).iloc[0]
                         
                         events.append({
                             'event_id': len(events) + 1,
@@ -791,9 +741,18 @@ class EcommerceDataGenerator:
                             'created_at': event_time
                         })
                     
-                    # Increment time for next event (1-5 minutes between events)
-                    event_time += timedelta(minutes=random.randint(1, 5))
-                    current_event = next_event
+                    # Choose next event based on flow probabilities
+                    if current_event in event_flow:
+                        next_event_probs = event_flow[current_event]
+                        current_event = random.choices(
+                            list(next_event_probs.keys()),
+                            weights=list(next_event_probs.values())
+                        )[0]
+                    else:
+                        current_event = 'view'
+                    
+                    # Increment time realistically
+                    event_time += timedelta(minutes=random.randint(1, 10))
             
         return pd.DataFrame(events)
 
@@ -813,6 +772,7 @@ class EcommerceDataGenerator:
         # Map category_id to category name
         category = self.get_category_name(product_info['category_id'])
         
+        # Category-specific aspects
         category_specific_aspects = {
             'Electronics': {
                 'positive': [
@@ -900,7 +860,7 @@ class EcommerceDataGenerator:
         """Generate reviews with realistic patterns and sentiment"""
         reviews_data = []
         
-        # Review probability by customer segment
+        # Review probability by customer segment (used internally)
         review_prob = {
             'High Value': 0.8,
             'Mid Value': 0.6,
@@ -929,94 +889,9 @@ class EcommerceDataGenerator:
             customer = customers_df[customers_df['customer_id'] == order['customer_id']].iloc[0]
             order_items = order_items_df[order_items_df['order_id'] == order['order_id']]
             
-            # Determine if customer will leave reviews
-            review_probability = review_prob.get(
-                customer.get('customer_segment', 'Mid Value'), 
-                0.5
-            )
-            
-            if random.random() < review_probability:
-                for _, item in order_items.iterrows():
-                    product = products_df[products_df['product_id'] == item['product_id']].iloc[0]
-                    
-                    # Get rating distribution based on product price
-                    rating_dist = get_rating_distribution(product['base_price'])
-                    review_score = random.choices(range(1, 6), weights=rating_dist)[0]
-                    
-                    # Generate review text
-                    review_text = self.generate_review_text(
-                        review_score,
-                        product
-                    )
-                    
-                    # Calculate review date
-                    review_date = pd.to_datetime(order['order_date']) + timedelta(
-                        days=get_review_delay()
-                    )
-                    
-                    if review_date <= self.end_date:
-                        reviews_data.append({
-                            'product_id': product['product_id'],
-                            'order_id': order['order_id'],
-                            'customer_id': customer['customer_id'],
-                            'review_score': review_score,
-                            'review_text': review_text,
-                            'review_date': review_date,
-                            'helpful_votes': np.random.poisson(2) if review_score != 3 else np.random.poisson(1),
-                            'verified_purchase': True
-                        })
-            
-        reviews_df = pd.DataFrame(reviews_data)
-        
-        # Update product ratings
-        for pid in products_df['product_id'].unique():
-            product_reviews = reviews_df[reviews_df['product_id'] == pid]
-            if len(product_reviews) > 0:
-                products_df.loc[products_df['product_id'] == pid, 'rating'] = \
-                    round(product_reviews['review_score'].mean(), 1)
-                products_df.loc[products_df['product_id'] == pid, 'review_count'] = \
-                    len(product_reviews)
-        
-        return reviews_df, products_df
-
-    def generate_reviews(self, orders_df, order_items_df, products_df, customers_df):
-        """Generate reviews with realistic patterns and sentiment"""
-        reviews_data = []
-        
-        # Review probability by customer segment
-        review_prob = {
-            'High Value': 0.8,
-            'Mid Value': 0.6,
-            'Low Value': 0.4
-        }
-        
-        # Define rating distributions by price range
-        def get_rating_distribution(price):
-            if price > 500:  # Expensive products
-                return [0.02, 0.03, 0.10, 0.35, 0.50]  # Higher expectations
-            elif price > 100:  # Mid-range products
-                return [0.05, 0.10, 0.15, 0.40, 0.30]
-            else:  # Budget products
-                return [0.10, 0.15, 0.25, 0.30, 0.20]  # More varied ratings
-        
-        # Define time patterns for review submission
-        def get_review_delay():
-            delays = [1, 2, 3, 4, 5, 6, 7, 14, 21, 30]
-            weights = [0.3, 0.2, 0.15, 0.1, 0.05, 0.05, 0.05, 0.05, 0.03, 0.02]
-            return random.choices(delays, weights=weights)[0]
-        
-        for _, order in orders_df.iterrows():
-            if order['status'] != 'Delivered':
-                continue
-                
-            customer = customers_df[customers_df['customer_id'] == order['customer_id']].iloc[0]
-            order_items = order_items_df[order_items_df['order_id'] == order['order_id']]
-            
-            # Determine if customer will leave reviews
-            review_probability = review_prob.get(
-                customer.get('customer_segment', 'Mid Value'), 
-                0.5
-            )
+            # Determine customer segment and review probability
+            segment = 'High Value' if customer['annual_income'] > 80000 else ('Mid Value' if customer['annual_income'] > 50000 else 'Low Value')
+            review_probability = review_prob.get(segment, 0.5)
             
             if random.random() < review_probability:
                 for _, item in order_items.iterrows():
@@ -1264,8 +1139,12 @@ def save_data(data_dict):
         print(f"Saved {table_name} to {csv_path}")
 
 if __name__ == "__main__":
+    
+    # Set master seed
+    MASTER_SEED = 42
+    
     try:
-        generator = EcommerceDataGenerator()
+        generator = EcommerceDataGenerator(seed=MASTER_SEED)
         data = generator.generate_all_data()
         
         # Save data directly to S3 and PostgreSQL
