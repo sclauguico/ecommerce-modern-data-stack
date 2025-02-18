@@ -139,14 +139,23 @@ class InitialHistoricETL:
             print(f"Error removing duplicate primary keys for {table_name}: {str(e)}")
             raise
 
-    def transform_data(self, df, table_name):
+    def transform_data(self, df, table_name, data_source):
         """Transform data with added metadata columns"""
         try:
+            # Make a copy to avoid modifying the original
+            df = df.copy()
+            
+            # Get primary key before transformation
+            primary_keys = self.get_primary_keys(table_name)
+            primary_keys = [pk.lower() for pk in primary_keys]
+            if primary_keys:
+                original_ids = set(df[primary_keys[0]].unique())
+            
             # Flatten JSON if needed
             df = self.flatten_json_df(df, table_name)
             
             # Add metadata columns
-            df['DATA_SOURCE'] = 'historic'
+            df['DATA_SOURCE'] = data_source
             df['BATCH_ID'] = self.batch_id
             df['LOADED_AT'] = self.batch_timestamp
             
@@ -158,14 +167,21 @@ class InitialHistoricETL:
             
             # Convert column names to uppercase for Snowflake
             df.columns = [col.upper() for col in df.columns]
-            df = self.remove_duplicate_primary_keys(df, table_name)
+            
+            # Verify no IDs were lost during transformation
+            if primary_keys:
+                transformed_ids = set(df[primary_keys[0].upper()].unique())
+                if len(original_ids) != len(transformed_ids):
+                    lost_ids = original_ids - set(int(id) for id in transformed_ids)
+                    print(f"Warning: Lost {len(lost_ids)} IDs during transformation")
+                    print(f"Sample of lost IDs: {sorted(lost_ids)[:5]}")
             
             return df
             
         except Exception as e:
             print(f"Transform error for {table_name}: {str(e)}")
             raise
-
+    
     def flatten_json_df(self, df, table_name):
         """Flatten nested JSON structures"""
         try:
@@ -300,6 +316,22 @@ class InitialHistoricETL:
         
         clean_table_name = table_name.replace('latest_', '')
         return date_columns.get(clean_table_name, ['created_at'])
+    
+    def get_primary_date_column(self, table_name):
+        """Return the primary date column for each table"""
+        primary_date_columns = {
+            'customers': 'signup_date',      # When customer joined
+            'orders': 'order_date',          # When order was placed
+            'products': 'created_at',        # When product was added
+            'order_items': 'created_at',     # When order item was created
+            'reviews': 'created_at',         # When review was submitted
+            'interactions': 'event_date',    # When interaction occurred
+            'categories': 'created_at',      # When category was created
+            'subcategories': 'created_at'    # When subcategory was created
+        }
+        
+        clean_table_name = table_name.replace('latest_', '')
+        return primary_date_columns.get(clean_table_name)
 
     def run_initial_load(self):
         """Execute ETL process for initial historic data setup"""
@@ -313,7 +345,7 @@ class InitialHistoricETL:
                 print(f"\nProcessing {table}")
                 
                 try:
-                    # Extract and combine data
+                    # Extract data from both sources
                     historic_df = (self.extract_from_s3(table, 'historic') 
                                 if table in self.s3_tables 
                                 else self.extract_from_postgres(table, 'historic'))
@@ -322,23 +354,78 @@ class InitialHistoricETL:
                             if table in self.s3_tables 
                             else self.extract_from_postgres(table, 'latest'))
                     
-                    # Find valid date column
-                    date_column = self.find_valid_date_column(latest_df, table)
+                    # Get primary keys
+                    primary_keys = self.get_primary_keys(table)
+                    primary_keys = [pk.lower() for pk in primary_keys]
                     
-                    if date_column:
-                        min_latest_date = latest_df[date_column].min()
-                        print(f"Latest data starts from: {min_latest_date}")
+                    # Print ID ranges before processing
+                    if primary_keys:
+                        primary_key = primary_keys[0]
+                        if primary_key in historic_df.columns and primary_key in latest_df.columns:
+                            print(f"\nBefore processing:")
+                            print(f"Historic {primary_key} range: {historic_df[primary_key].min()} to {historic_df[primary_key].max()}")
+                            print(f"Latest {primary_key} range: {latest_df[primary_key].min()} to {latest_df[primary_key].max()}")
+                    
+                    # Get primary date column for this table
+                    date_column = self.get_primary_date_column(table)
+                    
+                    if date_column and date_column in historic_df.columns and date_column in latest_df.columns:
+                        try:
+                            # Convert date columns to datetime
+                            historic_df[date_column] = pd.to_datetime(historic_df[date_column])
+                            latest_df[date_column] = pd.to_datetime(latest_df[date_column])
+                            
+                            min_latest_date = latest_df[date_column].min()
+                            max_historic_date = historic_df[date_column].max()
+                            
+                            print(f"\nDate ranges for {date_column}:")
+                            print(f"Historic: up to {max_historic_date}")
+                            print(f"Latest: starting from {min_latest_date}")
+                            
+                            if max_historic_date >= min_latest_date:
+                                print(f"Trimming historic data before {min_latest_date}")
+                                historic_df = historic_df[historic_df[date_column] < min_latest_date]
+                        except Exception as e:
+                            print(f"Warning: Error processing dates for {table}: {str(e)}")
+                            date_column = None
                     else:
-                        print(f"Warning: No valid date column found for {table}")
-                        min_latest_date = None
+                        print(f"No primary date column found for {table}")
+                        date_column = None
                     
-                    # Combine and transform data
+                    # Transform data after date handling
+                    historic_df = self.transform_data(historic_df, table, 'historic')
+                    latest_df = self.transform_data(latest_df, table, 'latest')
+                    
+                    # Combine data
                     combined_df = pd.concat([historic_df, latest_df], ignore_index=True)
-                    transformed_df = self.transform_data(combined_df, table)
+                    
+                    # Sort by ID and primary date column
+                    sort_columns = []
+                    if primary_keys:
+                        sort_columns.extend([col.upper() for col in primary_keys])
+                    if date_column:
+                        sort_columns.append(date_column.upper())
+                    
+                    if sort_columns:
+                        combined_df = combined_df.sort_values(by=sort_columns)
+                    
+                    # Print final ID range and check for gaps
+                    if primary_keys:
+                        primary_key = primary_keys[0].upper()
+                        if primary_key in combined_df.columns:
+                            print(f"\nFinal {primary_key} range: {combined_df[primary_key].min()} to {combined_df[primary_key].max()}")
+                            
+                            # Count any gaps in IDs
+                            all_ids = set(combined_df[primary_key].unique())
+                            expected_range = set(range(int(min(all_ids)), int(max(all_ids)) + 1))
+                            missing_ids = sorted(expected_range - all_ids)
+                            if missing_ids:
+                                print(f"Found {len(missing_ids)} gaps in {primary_key}")
+                                print(f"First few missing IDs: {missing_ids[:5]}...")
                     
                     # Save to local CSV
                     combined_path = f"ingested_data/{table}_combined.csv"
-                    transformed_df.to_csv(combined_path, index=False)
+                    combined_df.to_csv(combined_path, index=False)
                     print(f"Saved combined data to {combined_path}")
                     
                     # Prepare metadata
@@ -349,17 +436,16 @@ class InitialHistoricETL:
                         'historic_records': len(historic_df),
                         'latest_records': len(latest_df),
                         'total_records': len(combined_df),
-                        'date_column_used': date_column,
-                        'columns': transformed_df.columns.tolist(),
-                        'data_types': transformed_df.dtypes.astype(str).to_dict(),
-                        'min_date': min_latest_date if date_column else None
+                        'primary_date_column': date_column,
+                        'min_latest_date': min_latest_date.isoformat() if date_column and min_latest_date else None,
+                        'columns': combined_df.columns.tolist(),
+                        'data_types': combined_df.dtypes.astype(str).to_dict()
                     }
-                    
                     # Save to S3 as historic data
-                    self.save_to_s3_historic(transformed_df, table, metadata)
+                    self.save_to_s3_historic(combined_df, table, metadata)
                     
                     # Load to Snowflake
-                    self.load_to_snowflake(transformed_df, table)
+                    # self.load_to_snowflake(combined_df, table)
                     
                     print(f"""
                     Completed processing for {table}:
@@ -369,7 +455,6 @@ class InitialHistoricETL:
                     - Date column used: {date_column if date_column else 'None'}
                     - Data saved locally to: {combined_path}
                     - Data saved to S3 historic bucket
-                    - Data loaded to Snowflake table: {table.upper()}
                     """)
 
                 except Exception as e:
