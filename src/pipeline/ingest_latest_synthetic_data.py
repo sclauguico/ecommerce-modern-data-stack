@@ -111,6 +111,7 @@ class IncrementalETL:
         except Exception as e:
             print(f"Latest S3 extraction error for {table_name}: {str(e)}")
             raise
+        
     def get_primary_keys(self, table_name):
         """Return primary key columns for each table"""
         pk_mapping = {
@@ -152,87 +153,86 @@ class IncrementalETL:
             print(f"Error removing duplicate primary keys for {table_name}: {str(e)}")
             raise
         
-    def transform_data(self, df, table_name):
+    def transform_data(self, df, table_name, data_source):
         """Transform data with enhanced column handling and debugging"""
         try:
             print(f"\nDETAILED COLUMN ANALYSIS FOR {table_name}")
             print("=" * 50)
             
-            # Print initial column state
-            print("Initial columns with types:")
+            if df.empty:
+                print(f"No data to transform for {table_name}")
+                return df
+            
+            # Make a copy to avoid modifying the original
+            df = df.copy()
+            
+            # Convert column names to lowercase for consistency
+            df.columns = df.columns.str.lower()
+            
+            # Print initial column info
+            print("Initial columns and their types:")
             for col in df.columns:
                 print(f"- {col}: {df[col].dtype}")
             
-            # Handle datetime columns before any other transformations
-            date_columns = df.select_dtypes(include=['datetime64']).columns
-            for col in date_columns:
-                # Convert to pandas datetime with error handling
-                try:
-                    df[col] = pd.to_datetime(df[col], errors='coerce')
-                    # Convert to string format
-                    df[col] = df[col].dt.strftime('%Y-%m-%d %H:%M:%S')
-                except Exception as e:
-                    print(f"Warning: Error converting datetime column {col}: {str(e)}")
-                    # If conversion fails, keep original values
-                    continue
-                
-            # Check for and handle duplicate columns
-            duplicate_cols = df.columns[df.columns.duplicated(keep=False)]
-            if len(duplicate_cols) > 0:
-                print("\nFound duplicate columns:")
-                for col in duplicate_cols:
-                    print(f"- {col}")
-                    
-                # Create a mapping of duplicate columns to their first occurrence
-                col_mapping = {}
-                for col in df.columns:
-                    if col in duplicate_cols:
-                        if col not in col_mapping:
-                            col_mapping[col] = f"{col}_1"
-                        else:
-                            count = len([k for k in col_mapping.values() if k.startswith(col)]) + 1
-                            col_mapping[col] = f"{col}_{count}"
-                    else:
-                        col_mapping[col] = col
-                        
-                # Rename columns using the mapping
-                df.columns = [col_mapping[col] for col in df.columns]
-                
-                print("\nRenamed duplicate columns:")
-                for old_col, new_col in col_mapping.items():
-                    if old_col in duplicate_cols:
-                        print(f"- {old_col} -> {new_col}")
+            # Get primary key before transformation
+            primary_keys = self.get_primary_keys(table_name)
+            primary_keys = [pk.lower() for pk in primary_keys]
+            
+            # Check for missing primary keys
+            missing_keys = [pk for pk in primary_keys if pk not in df.columns]
+            if missing_keys:
+                print(f"Warning: Missing primary keys {missing_keys} in {table_name}")
+                # Add missing primary key columns with auto-incrementing values
+                start_id = 1
+                for pk in missing_keys:
+                    df[pk] = range(start_id, start_id + len(df))
+                    start_id += len(df)
+                    print(f"Added auto-incrementing {pk} column")
+            
+            if primary_keys:
+                original_ids = set(df[primary_keys[0]].unique())
+                print(f"Found {len(original_ids)} unique IDs in {primary_keys[0]}")
             
             # Flatten JSON if needed
             df = self.flatten_json_df(df, table_name)
             
             # Add metadata columns
-            df['DATA_SOURCE'] = 'historic'
-            df['BATCH_ID'] = self.batch_id
-            df['LOADED_AT'] = self.batch_timestamp.strftime('%Y-%m-%d %H:%M:%S')
+            df['data_source'] = data_source
+            df['batch_id'] = self.batch_id
+            df['loaded_at'] = self.batch_timestamp
             
-            # Handle NA/NaT values
+            # Standard transformations
+            date_columns = [col for col in df.columns if 'date' in col or col.endswith('_at')]
+            for col in date_columns:
+                try:
+                    df[col] = pd.to_datetime(df[col], errors='coerce')
+                    if pd.api.types.is_datetime64_any_dtype(df[col]):
+                        df[col] = df[col].dt.strftime('%Y-%m-%d %H:%M:%S')
+                except Exception as e:
+                    print(f"Warning: Could not convert {col} to datetime: {str(e)}")
+            
             df = df.replace({pd.NA: None, pd.NaT: None})
             
-            # Convert column names to uppercase
+            # Convert column names to uppercase for Snowflake
             df.columns = [col.upper() for col in df.columns]
-            df = self.remove_duplicate_primary_keys(df, table_name)
-            print("\nFinal columns:")
-            print(df.columns.tolist())
             
-            # Verify no duplicates remain
-            if df.columns.duplicated().any():
-                duplicates = df.columns[df.columns.duplicated()].tolist()
-                raise Exception(f"Duplicate columns still exist after transformation: {duplicates}")
+            # Verify no IDs were lost during transformation
+            if primary_keys:
+                transformed_ids = set(df[primary_keys[0].upper()].unique())
+                if len(original_ids) != len(transformed_ids):
+                    lost_ids = original_ids - set(int(id) for id in transformed_ids if str(id).isdigit())
+                    print(f"Warning: Lost {len(lost_ids)} IDs during transformation")
+                    print(f"Sample of lost IDs: {sorted(lost_ids)[:5]}")
             
+            print(f"Successfully transformed {len(df)} records")
+            print(f"Final columns: {df.columns.tolist()}")
             return df
-            
+                
         except Exception as e:
             print(f"Transform error for {table_name}: {str(e)}")
-            print("Full column list at error:")
-            print(df.columns.tolist())
+            print(f"DataFrame info:")
+            print(df.info())
             raise
-
 
     def flatten_json_df(self, df, table_name):
         """Flatten nested JSON structures"""
@@ -430,7 +430,23 @@ class IncrementalETL:
                 return col
                 
         return None
+    
+    def get_primary_date_column(self, table_name):
+        """Return the primary date column for each table"""
+        primary_date_columns = {
+            'customers': 'signup_date',      # When customer joined
+            'orders': 'order_date',          # When order was placed
+            'products': 'created_at',        # When product was added
+            'order_items': 'created_at',     # When order item was created
+            'reviews': 'created_at',         # When review was submitted
+            'interactions': 'event_date',    # When interaction occurred
+            'categories': 'created_at',      # When category was created
+            'subcategories': 'created_at'    # When subcategory was created
+        }
         
+        clean_table_name = table_name.replace('latest_', '')
+        return primary_date_columns.get(clean_table_name)
+            
     def run_etl(self):
         """Execute ETL process with historic CSV data"""
         try:
@@ -443,6 +459,38 @@ class IncrementalETL:
                 print(f"\nProcessing {table}")
                 
                 try:
+                    # For categories and subcategories, just use latest data
+                    if table in ['categories', 'subcategories']:
+                        if table in self.postgres_tables:
+                            latest_df = self.extract_latest_from_postgres(table)
+                        else:
+                            latest_df = self.extract_latest_from_s3(table)
+                            
+                        if not latest_df.empty:
+                            # Transform data
+                            transformed_df = self.transform_data(latest_df, table, 'latest')
+                            
+                            # Save to local CSV
+                            combined_path = f"ingested_data/{table}_combined.csv"
+                            transformed_df.to_csv(combined_path, index=False)
+                            print(f"Saved data to {combined_path}")
+                            
+                            # Prepare metadata
+                            metadata = {
+                                'table_name': table,
+                                'batch_id': self.batch_id,
+                                'timestamp': str(self.batch_timestamp),
+                                'records': len(transformed_df),
+                                'columns': transformed_df.columns.tolist(),
+                                'data_types': {col: str(dtype) for col, dtype in transformed_df.dtypes.items()}
+                            }
+                            
+                            # Save to S3 and Snowflake
+                            self.save_to_s3_historic(transformed_df, table, metadata)
+                            self.load_to_snowflake(transformed_df, table)
+                        continue
+
+                    # For other tables, process both historic and latest data
                     # Extract historic data from S3 CSV
                     historic_df = self.extract_historic_from_s3(table)
                     
@@ -451,45 +499,80 @@ class IncrementalETL:
                             if table in self.s3_tables 
                             else self.extract_latest_from_postgres(table))
                     
-                    # Transform data before date handling
-                    latest_transformed_df = self.transform_data(latest_df, table)
-                    historic_transformed_df = self.transform_data(historic_df, table)
+                    # Skip if both dataframes are empty
+                    if historic_df.empty and latest_df.empty:
+                        print(f"No data found for {table}, skipping...")
+                        continue
                     
-                    # Find valid date column
-                    date_column = self.find_valid_date_column(latest_transformed_df, table)
+                    # Get primary keys
+                    primary_keys = self.get_primary_keys(table)
+                    primary_keys = [pk.lower() for pk in primary_keys]
+                    
+                    # Print ID ranges before processing
+                    if primary_keys and not historic_df.empty and not latest_df.empty:
+                        primary_key = primary_keys[0]
+                        if primary_key in historic_df.columns and primary_key in latest_df.columns:
+                            print(f"\nBefore processing:")
+                            print(f"Historic {primary_key} range: {historic_df[primary_key].min()} to {historic_df[primary_key].max()}")
+                            print(f"Latest {primary_key} range: {latest_df[primary_key].min()} to {latest_df[primary_key].max()}")
+                    
+                    # Get primary date column for this table
+                    date_column = self.get_primary_date_column(table)
+                    min_latest_date = None
                     
                     if date_column:
-                        try:
-                            # Convert date columns to datetime for comparison
-                            latest_transformed_df[date_column] = pd.to_datetime(latest_transformed_df[date_column])
-                            historic_transformed_df[date_column] = pd.to_datetime(historic_transformed_df[date_column])
-                            
-                            min_latest_date = latest_transformed_df[date_column].min()
-                            print(f"Latest data starts from: {min_latest_date}")
-                            
-                            if date_column in historic_transformed_df.columns:
-                                historic_transformed_df = historic_transformed_df[
-                                    historic_transformed_df[date_column] < min_latest_date
-                                ]
-                            
-                            # Convert back to string format for consistency
-                            latest_transformed_df[date_column] = latest_transformed_df[date_column].dt.strftime('%Y-%m-%d %H:%M:%S')
-                            historic_transformed_df[date_column] = historic_transformed_df[date_column].dt.strftime('%Y-%m-%d %H:%M:%S')
-                        except Exception as e:
-                            print(f"Warning: Error processing date column {date_column}: {str(e)}")
-                            # Continue without date filtering if there's an error
-                            min_latest_date = None
-                    else:
-                        print(f"Warning: No valid date column found for {table}")
-                        min_latest_date = None
+                        if not latest_df.empty and date_column in latest_df.columns:
+                            latest_df[date_column] = pd.to_datetime(latest_df[date_column], errors='coerce')
+                            min_latest_date = latest_df[date_column].min()
+                        
+                        if not historic_df.empty and date_column in historic_df.columns:
+                            historic_df[date_column] = pd.to_datetime(historic_df[date_column], errors='coerce')
+                            if min_latest_date is not None:
+                                historic_df = historic_df[historic_df[date_column] < min_latest_date]
                     
-                    # Get primary keys for deduplication
-                    primary_keys = self.get_primary_keys(table)
+                    # Transform data
+                    historic_transformed_df = self.transform_data(historic_df, table, 'historic') if not historic_df.empty else pd.DataFrame()
+                    latest_transformed_df = self.transform_data(latest_df, table, 'latest') if not latest_df.empty else pd.DataFrame()
                     
                     # Combine data
                     combined_df = pd.concat([historic_transformed_df, latest_transformed_df], ignore_index=True)
-
-                    print(f"Removed {len(historic_transformed_df) + len(latest_transformed_df) - len(combined_df)} duplicate records")
+                    
+                    # Skip if no data after combination
+                    if combined_df.empty:
+                        print(f"No data after combining for {table}, skipping...")
+                        continue
+                    
+                    # Sort by ID and primary date column
+                    sort_columns = []
+                    if primary_keys:
+                        sort_columns.extend([col.upper() for col in primary_keys])
+                    if date_column:
+                        sort_columns.append(date_column.upper())
+                    
+                    if sort_columns:
+                        combined_df = combined_df.sort_values(by=sort_columns)
+                    
+                    # Remove duplicates based on primary keys
+                    before_dedup = len(combined_df)
+                    combined_df = self.remove_duplicate_primary_keys(combined_df, table)
+                    after_dedup = len(combined_df)
+                    duplicates_removed = before_dedup - after_dedup
+                    
+                    # Print final ID range and check for gaps
+                    if primary_keys:
+                        primary_key = primary_keys[0].upper()
+                        if primary_key in combined_df.columns:
+                            min_id = combined_df[primary_key].min()
+                            max_id = combined_df[primary_key].max()
+                            print(f"\nFinal {primary_key} range: {min_id} to {max_id}")
+                            
+                            # Count any gaps in IDs
+                            all_ids = set(combined_df[primary_key].unique())
+                            expected_range = set(range(int(min_id), int(max_id) + 1))
+                            missing_ids = sorted(expected_range - all_ids)
+                            if missing_ids:
+                                print(f"Found {len(missing_ids)} gaps in {primary_key}")
+                                print(f"First few missing IDs: {missing_ids[:5]}...")
                     
                     # Save to local CSV
                     combined_path = f"ingested_data/{table}_combined.csv"
@@ -504,25 +587,23 @@ class IncrementalETL:
                         'historic_records': len(historic_transformed_df),
                         'latest_records': len(latest_transformed_df),
                         'total_records': len(combined_df),
-                        'removed_duplicates': len(historic_transformed_df) + len(latest_transformed_df) - len(combined_df),
+                        'duplicates_removed': duplicates_removed,
                         'date_column_used': date_column,
+                        'min_latest_date': str(min_latest_date) if min_latest_date is not None else None,
                         'primary_keys_used': primary_keys,
                         'columns': combined_df.columns.tolist(),
-                        'data_types': {col: str(dtype) for col, dtype in combined_df.dtypes.items()},
-                        'min_date': str(min_latest_date) if min_latest_date is not None else None
+                        'data_types': {col: str(dtype) for col, dtype in combined_df.dtypes.items()}
                     }
                     
-                    # Save to S3 as historic data
+                    # Save to S3 and Snowflake
                     self.save_to_s3_historic(combined_df, table, metadata)
-                    
-                    # Load to Snowflake
                     self.load_to_snowflake(combined_df, table)
                     
                     print(f"""
                     Completed processing for {table}:
                     - Historic records: {len(historic_transformed_df)}
                     - Latest records: {len(latest_transformed_df)}
-                    - Duplicates removed: {len(historic_transformed_df) + len(latest_transformed_df) - len(combined_df)}
+                    - Duplicates removed: {duplicates_removed}
                     - Total records processed: {len(combined_df)}
                     - Date column used: {date_column if date_column else 'None'}
                     - Primary keys used: {', '.join(primary_keys)}

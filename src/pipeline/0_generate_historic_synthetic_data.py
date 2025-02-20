@@ -55,9 +55,14 @@ class EcommerceDataGenerator:
         
         self.start_date = start_date
         self.end_date = end_date
+        
         self.fake = Faker()
         np.random.seed(42)
         random.seed(42)
+        
+        # Store initial states
+        self._random_state = random.getstate()
+        self._numpy_state = np.random.get_state()
         
         self.review_templates = {
             'positive': [
@@ -119,6 +124,10 @@ class EcommerceDataGenerator:
     
     def generate_categories(self):
         """Generate product categories with simplified output structure"""
+        
+        random.setstate(self._random_state)
+        np.random.set_state(self._numpy_state)
+         
         categories = {
             'Electronics': ['Smartphones', 'Laptops', 'Accessories', 'Tablets', 'Wearables'],
             'Fashion': ['Men\'s Clothing', 'Women\'s Clothing', 'Children\'s Clothing', 'Shoes', 'Accessories'],
@@ -147,10 +156,16 @@ class EcommerceDataGenerator:
                     'created_at': self.start_date
                 })
         
+        self._random_state = random.getstate()
+        self._numpy_state = np.random.get_state()
         return pd.DataFrame(category_data), pd.DataFrame(subcategory_data)
 
     def generate_products(self, n_products=1000):
         """Generate product catalog with category-appropriate names and descriptions"""
+        random.seed(self.seed)
+        np.random.seed(self.seed)
+        self.fake.seed_instance(self.seed)
+    
         categories_df, subcategories_df = self.generate_categories()
         
         # Category-specific product patterns

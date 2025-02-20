@@ -1098,13 +1098,12 @@ class RecentEcommerceDataGenerator:
                                 'product_id': product['product_id'],
                                 'order_id': order['order_id'],
                                 'customer_id': customer['customer_id'],
-                                'rating': review_score,
+                                'review_score': review_score,
                                 'review_text': review_text,
                                 'review_date': review_date,
                                 'helpful_votes': helpful_votes,
                                 'verified_purchase': True,
                                 'created_at': review_date,
-                                'updated_at': review_date
                             })
                             review_id += 1
             
@@ -1122,7 +1121,7 @@ class RecentEcommerceDataGenerator:
             product_reviews = reviews_df[reviews_df['product_id'] == pid]
             if len(product_reviews) > 0:
                 products_df.loc[products_df['product_id'] == pid, 'rating'] = \
-                    round(product_reviews['rating'].mean(), 1)
+                    round(product_reviews['review_score'].mean(), 1)
                 products_df.loc[products_df['product_id'] == pid, 'review_count'] = \
                     len(product_reviews)
         
