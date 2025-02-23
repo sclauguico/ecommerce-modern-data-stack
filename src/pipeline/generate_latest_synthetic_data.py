@@ -60,7 +60,7 @@ class RecentEcommerceDataGenerator:
         self.id_offset = id_offset  # Store the offset
         np.random.seed(42)
         random.seed(42)
-        
+
         # Keep existing templates and aspects from the original code
         self.review_templates = {
             'positive': [
@@ -157,7 +157,7 @@ class RecentEcommerceDataGenerator:
         days_offset = random.randint(0, 30)
         return self.end_date - timedelta(days=days_offset)
 
-    def generate_products(self, n_products=1000):
+    def generate_products(self, n_products=50):
         """Generate product catalog with recent dates and sophisticated pricing"""
         categories_df, subcategories_df = self.generate_categories()
         
@@ -426,7 +426,7 @@ class RecentEcommerceDataGenerator:
             review_count = random.randint(0, 100) if rating >= 4.0 else random.randint(0, 30)
 
             products.append({
-                'product_id': product_id,
+                'product_id': product_id + self.id_offset,
                 'category_id': category_id,
                 'subcategory_id': subcategory_id,
                 'product_name': product_name.strip(),
@@ -445,10 +445,9 @@ class RecentEcommerceDataGenerator:
         
         return pd.DataFrame(products), categories_df, subcategories_df
 
-    def generate_customers(self, n_customers=1000):
-        root_dir = os.getcwd()  # Gets the current working directory (assumed to be the project root)
-        historic_customers_file = os.path.join(root_dir, "generated_historic_data", "customers.csv")
-
+    def generate_customers(self, n_customers=200):
+        """Generate new customer data for the 30-day window"""
+        
         # Define age and demographic segments
         age_segments = {
             'Gen Z': {'range': (18, 25), 'weight': 0.20, 'income_range': (20000, 45000)},
@@ -467,6 +466,13 @@ class RecentEcommerceDataGenerator:
             'Boomers': {'High School': 0.25, 'Some College': 0.35, 'Bachelor': 0.3, 'Master': 0.1}
         }
 
+        # Location type distribution
+        location_dist = {
+            'Urban': 0.45,
+            'Suburban': 0.40,
+            'Rural': 0.15
+        }
+
         # Channel preferences by age segment
         channel_dist = {
             'Gen Z': {'Mobile App': 0.6, 'Web': 0.3, 'Email': 0.1},
@@ -476,59 +482,8 @@ class RecentEcommerceDataGenerator:
             'Boomers': {'Mobile App': 0.2, 'Web': 0.5, 'Email': 0.3}
         }
 
-        # Try to load historic customers
-        try:
-            historic_df = pd.read_csv(historic_customers_file)
-            print(f"Loaded {len(historic_df)} historic customers")
-            
-            # Calculate number of returning customers (70% of historic customers)
-            n_returning = min(int(len(historic_df) * 0.7), int(n_customers * 0.3))
-            n_new = n_customers - n_returning
-            
-            print(f"Generating {n_returning} returning customers and {n_new} new customers")
-            
-            # Select random returning customers
-            returning_customers = historic_df.sample(n=n_returning).copy()
-            
-            # Update their activity for the recent period
-            for idx in returning_customers.index:
-                # Determine age segment based on age
-                age = returning_customers.loc[idx, 'age']
-                segment = next((seg for seg, props in age_segments.items() 
-                            if props['range'][0] <= age <= props['range'][1]), 'Gen X')
-                
-                # Generate new login date within the last 30 days
-                last_login = self.generate_random_date()
-                returning_customers.loc[idx, 'last_login'] = last_login
-                
-                # Update fields with segment-appropriate values
-                income_range = age_segments[segment]['income_range']
-                returning_customers.loc[idx, 'annual_income'] = int(np.random.normal(
-                    (income_range[0] + income_range[1]) / 2,
-                    (income_range[1] - income_range[0]) / 4
-                ))
-                
-                returning_customers.loc[idx, 'preferred_channel'] = random.choices(
-                    list(channel_dist[segment].keys()),
-                    weights=list(channel_dist[segment].values())
-                )[0]
-                
-                # Update other fields
-                returning_customers.loc[idx, 'marital_status'] = random.choice(['Single', 'Married', 'Divorced', 'Widowed'])
-                returning_customers.loc[idx, 'location_type'] = random.choice(['Urban', 'Suburban', 'Rural'])
-                returning_customers.loc[idx, 'is_active'] = True
-            
-        except FileNotFoundError:
-            print("Historic customers file not found. Generating all new customers.")
-            n_returning = 0
-            n_new = n_customers
-            returning_customers = pd.DataFrame()
-        
-        # Generate new customers
-        new_customers = []
-        start_id = self.id_offset if not len(returning_customers) else max(returning_customers['customer_id']) + 1
-        
-        for customer_id in range(start_id, start_id + n_new):
+        customers = []
+        for customer_id in range(1, n_customers + 1):
             # Select age segment
             age_segment = random.choices(
                 list(age_segments.keys()),
@@ -553,6 +508,12 @@ class RecentEcommerceDataGenerator:
                 weights=list(education_dist[age_segment].values())
             )[0]
             
+            # Select location type
+            location_type = random.choices(
+                list(location_dist.keys()),
+                weights=list(location_dist.values())
+            )[0]
+            
             # Select preferred channel based on age segment
             channel_weights = channel_dist[age_segment]
             preferred_channel = random.choices(
@@ -560,19 +521,14 @@ class RecentEcommerceDataGenerator:
                 weights=list(channel_weights.values())
             )[0]
             
-            # Generate recent signup date
-            signup_date = self.generate_random_date()
-            last_login = min(signup_date + timedelta(days=random.randint(0, 5)), self.end_date)
+            # Generate signup date
+            days_range = (self.end_date - self.start_date).days
+            signup_date = self.start_date + timedelta(days=random.randint(0, days_range))
+
+            # Calculate segment but don't include in final data
+            segment = 'High Value' if income > 80000 else ('Mid Value' if income > 50000 else 'Low Value')
             
-            # Determine customer segment based on income
-            if income > 80000:
-                segment = 'High Value'
-            elif income > 50000:
-                segment = 'Mid Value'
-            else:
-                segment = 'Low Value'
-            
-            new_customers.append({
+            customers.append({
                 'customer_id': customer_id + self.id_offset,
                 'email': self.fake.email(),
                 'first_name': self.fake.first_name(),
@@ -587,26 +543,35 @@ class RecentEcommerceDataGenerator:
                 'state': self.fake.state(),
                 'country': 'USA',
                 'signup_date': signup_date,
-                'last_login': last_login,
+                'last_login': signup_date + timedelta(days=random.randint(0, min(30, (self.end_date - signup_date).days))),
                 'preferred_channel': preferred_channel,
-                'is_active': True
+                'is_active': True  # All new customers are active
             })
         
-        # Combine returning and new customers
-        new_customers_df = pd.DataFrame(new_customers)
-        final_customers_df = pd.concat([returning_customers, new_customers_df], ignore_index=True)
-        
-        print(f"Generated total of {len(final_customers_df)} customers")
-        print(f"- Returning customers: {len(returning_customers)}")
-        print(f"- New customers: {len(new_customers_df)}")
-        
-        return final_customers_df
+        return pd.DataFrame(customers)
 
     def generate_orders(self, customers_df, products_df):
         """Generate order data for the last 30 days"""
         orders = []
         order_items = []
         order_id = 1 + self.id_offset
+        
+        # Try to load historic customers
+        try:
+            root_dir = os.getcwd()
+            historic_customers_file = os.path.join(root_dir, "generated_historic_data", "customers.csv")
+            historic_df = pd.read_csv(historic_customers_file)
+                        
+            # Select active historic customers (20% of historic customers)
+            n_historic_active = int(len(historic_df) * 0.2)
+            active_historic_customers = historic_df.sample(n=n_historic_active)
+            
+            # Combine with new customers
+            all_customers = pd.concat([customers_df, active_historic_customers], ignore_index=True)
+        except Exception as e:
+            print(f"Could not load historic customers: {str(e)}")
+            print("Using only new customers")
+            all_customers = customers_df
                 
         # Seasonality patterns
         seasonality = {
@@ -635,76 +600,82 @@ class RecentEcommerceDataGenerator:
             6: 1.1   # Sunday
         }
         
-        for _, customer in customers_df.iterrows():
-            signup_date = max(pd.to_datetime(customer['signup_date']), self.start_date)
-            num_orders = np.random.poisson(2)
+        # Add yearly growth trend
+        base_growth_rate = 1.15  # 15% annual growth
+        
+        for _, customer in all_customers.iterrows():
+            # Determine if customer is new or returning
+            is_new = customer['customer_id'] >= self.id_offset
             
-            # Order frequency based on customer segment
-            base_frequency = {
-                'High Value': 4,
-                'Mid Value': 2,
-                'Low Value': 1
-            }.get(customer.get('customer_segment', 'Mid Value'), 2)
+            # Calculate available date range for orders
+            signup_date = pd.to_datetime(customer['signup_date'])
             
-            # Add some randomness to frequency
-            num_orders = np.random.poisson(base_frequency)
+            # Adjust order frequency based on customer type
+            income_factor = min(2.0, max(0.5, customer['annual_income'] / 65000))
+            if is_new:
+                # New customers have more variable engagement
+                customer_frequency = np.random.poisson(3 * income_factor)  # Lower initial order frequency
+            else:
+                # Returning customers have more established patterns
+                customer_frequency = np.random.poisson(7 * income_factor)  # Higher order frequency
             
-            for _ in range(num_orders):
-                # Generate order date with patterns
-                order_date = max(
-                    signup_date,
-                    self.generate_random_date()
-                )
+            for _ in range(customer_frequency):
+                # Generate order date based on customer type
+                if signup_date >= self.start_date:
+                    # New customer - orders start after signup
+                    available_days = (self.end_date - signup_date).days
+                    order_date = signup_date + timedelta(days=random.randint(0, max(1, available_days)))
+                else:
+                    # Returning customer - orders within the 30-day window
+                    order_date = self.start_date + timedelta(days=random.randint(0, 29))
                 
-                # Apply seasonality and day of week factors
-                season_factor = seasonality[order_date.month]
+                # Apply seasonality and trends
+                month_factor = seasonality[order_date.month]
                 day_factor = daily_factors[order_date.weekday()]
+                days_since_start = (order_date - self.start_date).days
+                years_since_start = max(0.1, days_since_start / 365.0)
+                growth_factor = base_growth_rate ** years_since_start
+                
+                # Combined factor for order value
+                total_factor = month_factor * day_factor * growth_factor
                 
                 # Order status based on recency
                 days_since_order = (self.end_date - order_date).days
-                if days_since_order < 1:
+                if days_since_order < 2:
                     status = 'Pending'
-                elif days_since_order < 2:
-                    status = 'Processing'
                 elif days_since_order < 4:
+                    status = 'Processing'
+                elif days_since_order < 7:
                     status = 'Shipped'
                 else:
                     status = 'Delivered'
                 
+                shipping_cost = round(random.uniform(5, 20) * growth_factor, 2)
+                
                 # Generate order items with product affinity
-                num_items = np.random.poisson(2) + 1
+                # New customers tend to buy fewer items
+                base_items = 2 if is_new else 3
+                num_items = np.random.poisson(base_items) + 1
                 
-                # Product selection with category affinity
-                if random.random() < 0.7:  # 70% chance to buy from preferred category
-                    preferred_category = random.randint(1, 5)
-                    matching_products = products_df[
-                        products_df['category_id'] == preferred_category
-                    ]
-                    if len(matching_products) > 0:
-                        order_products = matching_products.sample(
-                            n=min(num_items, len(matching_products))
-                        )
-                    else:
-                        order_products = products_df.sample(n=num_items)
+                # Category preference more pronounced for returning customers
+                category_preference = random.randint(1, 5)
+                preferred_products = products_df[products_df['category_id'] == category_preference]
+                
+                # Returning customers more likely to buy from preferred category
+                category_probability = 0.5 if is_new else 0.8
+                if len(preferred_products) > 0 and random.random() < category_probability:
+                    order_products = preferred_products.sample(n=min(num_items, len(preferred_products)), replace=True)
                 else:
-                    order_products = products_df.sample(n=num_items)
+                    order_products = products_df.sample(n=min(num_items, len(products_df)), replace=True)
                 
-                # Shipping cost with seasonal factor
-                base_shipping = random.uniform(5, 20)
-                shipping_cost = round(base_shipping * season_factor, 2)
                 total_amount = shipping_cost
-                
-                # Generate order items
                 for _, product in order_products.iterrows():
-                    # Quantity based on customer segment and price
-                    if customer.get('customer_segment') == 'High Value':
-                        quantity = np.random.poisson(2) + 1
-                    else:
-                        quantity = np.random.poisson(1) + 1
+                    # Returning customers tend to buy in larger quantities
+                    base_quantity = 1.2 if is_new else 1.8
+                    quantity = np.random.poisson(base_quantity) + 1
                     
-                    # Price with seasonal and daily factors
-                    price = product['sale_price'] * season_factor * day_factor
-                    item_total = quantity * price
+                    price = product['sale_price'] * (1 + random.uniform(-0.1, 0.1))
+                    item_total = quantity * price * total_factor
                     total_amount += item_total
                     
                     order_items.append({
@@ -717,14 +688,15 @@ class RecentEcommerceDataGenerator:
                         'created_at': order_date
                     })
                 
-                # Payment method based on customer segment
-                payment_methods = {
-                    'High Value': ['Credit Card', 'PayPal'],
-                    'Mid Value': ['Credit Card', 'PayPal', 'Debit Card'],
-                    'Low Value': ['Debit Card', 'PayPal']
-                }
-                segment = customer.get('customer_segment', 'Mid Value')
-                payment_method = random.choice(payment_methods[segment])
+                # Payment method preferences
+                if is_new:
+                    payment_methods = ['Credit Card', 'PayPal', 'Debit Card']
+                    weights = [0.5, 0.3, 0.2]  # New customers prefer credit cards
+                else:
+                    payment_methods = ['Credit Card', 'PayPal', 'Debit Card']
+                    weights = [0.4, 0.4, 0.2]  # Returning customers more likely to use PayPal
+                
+                payment_method = random.choices(payment_methods, weights=weights)[0]
                 
                 orders.append({
                     'order_id': order_id,
@@ -745,10 +717,29 @@ class RecentEcommerceDataGenerator:
         return pd.DataFrame(orders), pd.DataFrame(order_items)
 
     def generate_interactions(self, customers_df, products_df):
-        """Generate customer interactions for the last 30 days"""
+        """Generate customer interactions for the last 30 days for both new and historic customers"""
         events = []
         event_id = 1 + self.id_offset
-        
+
+        # Try to load historic customers from S3
+        try:
+            root_dir = os.getcwd()
+            historic_customers_file = os.path.join(root_dir, "generated_historic_data", "customers.csv")
+            historic_df = pd.read_csv(historic_customers_file)
+            
+            # print(f"Loaded {len(historic_df)} historic")
+            
+            # Select active historic customers (20% of historic customers)
+            n_historic_active = int(len(historic_df) * 0.2)
+            active_historic_customers = historic_df.sample(n=n_historic_active)
+            
+            # Combine with new customers
+            all_customers = pd.concat([customers_df, active_historic_customers], ignore_index=True)
+        except Exception as e:
+            print(f"Could not load historic customers: {str(e)}")
+            print("Using only new customers")
+            all_customers = customers_df
+
         # Time-of-day patterns
         hourly_patterns = {
             'desktop': {  # Peak during work hours
@@ -771,41 +762,66 @@ class RecentEcommerceDataGenerator:
             }
         }
         
-        # Event flow with realistic browsing patterns
-        event_flow = {
-            'view': {'cart_add': 0.3, 'view': 0.6, 'search': 0.1},
-            'cart_add': {'view': 0.3, 'cart_remove': 0.2, 'purchase': 0.2, 'search': 0.3},
-            'cart_remove': {'view': 0.7, 'search': 0.3},
+        # Event flow patterns - different for new vs returning customers
+        new_customer_flow = {
+            'view': {'cart_add': 0.2, 'view': 0.7, 'search': 0.1},  # More browsing
+            'cart_add': {'view': 0.4, 'cart_remove': 0.3, 'purchase': 0.1, 'search': 0.2},  # More hesitant
+            'cart_remove': {'view': 0.8, 'search': 0.2},
             'search': {'view': 0.8, 'cart_add': 0.2},
-            'purchase': {'view': 0.6, 'search': 0.4},
-            'start': {'view': 0.7, 'search': 0.3}
+            'purchase': {'view': 0.7, 'search': 0.3},
+            'start': {'view': 0.6, 'search': 0.4}  # More likely to start with search
         }
         
-        for _, customer in customers_df.iterrows():
-            # Base number of sessions - using income as a rough proxy for engagement
-            base_sessions = max(5, min(15, int(customer['annual_income'] / 10000)))
-            num_sessions = np.random.poisson(base_sessions)
+        returning_customer_flow = {
+            'view': {'cart_add': 0.4, 'view': 0.5, 'search': 0.1},  # More decisive
+            'cart_add': {'view': 0.2, 'cart_remove': 0.1, 'purchase': 0.5, 'search': 0.2},  # More likely to purchase
+            'cart_remove': {'view': 0.6, 'search': 0.4},
+            'search': {'view': 0.7, 'cart_add': 0.3},
+            'purchase': {'view': 0.6, 'search': 0.4},
+            'start': {'view': 0.8, 'search': 0.2}  # More likely to go straight to products
+        }
+        
+        # Device preferences - different for new vs returning
+        new_device_weights = [0.3, 0.6, 0.1]  # More mobile-heavy
+        returning_device_weights = [0.4, 0.45, 0.15]  # More balanced
+        
+        for _, customer in all_customers.iterrows():
+            # Determine if customer is new or returning
+            is_new = customer['customer_id'] >= self.id_offset
+            
+            # Select appropriate event flow and device weights
+            event_flow = new_customer_flow if is_new else returning_customer_flow
+            device_weights = new_device_weights if is_new else returning_device_weights
+            
+            # Determine base number of sessions
+            if is_new:
+                # New customers have more variable engagement
+                base_sessions = np.random.poisson(10)  # Higher initial engagement
+            else:
+                # Returning customers have more predictable patterns
+                base_sessions = max(3, min(12, int(customer['annual_income'] / 15000)))
+                
+            
+            num_sessions = int(base_sessions)
             
             for _ in range(num_sessions):
                 session_id = f"session_{random.randint(10000, 99999)}"
                 device_type = random.choices(
-                    ['desktop', 'mobile', 'tablet'], 
-                    weights=[0.4, 0.45, 0.15]
+                    ['desktop', 'mobile', 'tablet'],
+                    weights=device_weights
                 )[0]
                 
-                # Generate session start time
-                # Convert signup_date to datetime if it isn't already
+                # Generate session start time based on customer signup
                 signup_date = pd.to_datetime(customer['signup_date'])
-                available_days = (self.end_date - signup_date).days
-                
-                if available_days <= 0:
-                    # If signup_date is already at or after end_date, use signup_date
-                    base_date = signup_date
+                if signup_date >= self.start_date:
+                    # New customer - sessions start after signup
+                    available_days = (self.end_date - signup_date).days
+                    base_date = signup_date + timedelta(days=random.randint(0, max(0, available_days)))
                 else:
-                    # Otherwise, generate a random date between signup and end_date
-                    days_offset = random.randint(0, available_days)
-                    base_date = signup_date + timedelta(days=days_offset)
+                    # Returning customer - sessions within the 30-day window
+                    base_date = self.start_date + timedelta(days=random.randint(0, 29))
                 
+                # Apply time-of-day patterns
                 hour_weights = hourly_patterns[device_type]['distribution']
                 hour = random.choices(range(24), weights=hour_weights)[0]
                 minute = random.randint(0, 59)
@@ -814,24 +830,53 @@ class RecentEcommerceDataGenerator:
                 # Generate sequence of events
                 current_event = 'start'
                 event_time = session_start
-                num_events = np.random.poisson(4) + 1  # At least one event per session
+                
+                # New customers tend to have longer sessions
+                base_events = 4 if is_new else 3
+                num_events = np.random.poisson(base_events) + 1
+                
+                # Track cart items for the session
+                cart_items = set()
                 
                 for _ in range(num_events):
-                    if current_event in event_flow:
-                        next_event_probs = event_flow[current_event]
-                        next_event = random.choices(
-                            list(next_event_probs.keys()),
-                            weights=list(next_event_probs.values())
-                        )[0]
-                    else:
-                        next_event = 'view'
+                    next_event_probs = event_flow.get(current_event, event_flow['start'])
+                    next_event = random.choices(
+                        list(next_event_probs.keys()),
+                        weights=list(next_event_probs.values())
+                    )[0]
                     
                     if next_event != 'start':
-                        # Select product based on price range affinity
-                        product = products_df.sample(n=1).iloc[0]
+                        # Product selection logic
+                        if cart_items and next_event in ['view', 'search']:
+                            # 30% chance to view related products
+                            if random.random() < 0.3:
+                                related_category = products_df[
+                                    products_df['product_id'].isin(cart_items)
+                                ]['category_id'].iloc[0]
+                                potential_products = products_df[
+                                    products_df['category_id'] == related_category
+                                ]
+                                if not potential_products.empty:
+                                    product = potential_products.sample(n=1).iloc[0]
+                                else:
+                                    product = products_df.sample(n=1).iloc[0]
+                            else:
+                                product = products_df.sample(n=1).iloc[0]
+                        else:
+                            product = products_df.sample(n=1).iloc[0]
+                        
+                        # Update cart items
+                        if next_event == 'cart_add':
+                            cart_items.add(product['product_id'])
+                        elif next_event == 'cart_remove' and cart_items:
+                            removed_item = random.choice(list(cart_items))
+                            cart_items.remove(removed_item)
+                            product = products_df[
+                                products_df['product_id'] == removed_item
+                            ].iloc[0]
                         
                         events.append({
-                            'event_id': len(events) + 1,
+                            'event_id': event_id,
                             'customer_id': customer['customer_id'],
                             'product_id': product['product_id'],
                             'event_type': next_event,
@@ -840,19 +885,16 @@ class RecentEcommerceDataGenerator:
                             'session_id': session_id,
                             'created_at': event_time
                         })
+                        event_id += 1
                     
-                    # Choose next event based on flow probabilities
-                    if current_event in event_flow:
-                        next_event_probs = event_flow[current_event]
-                        current_event = random.choices(
-                            list(next_event_probs.keys()),
-                            weights=list(next_event_probs.values())
-                        )[0]
+                    current_event = next_event
+                    
+                    # Increment time with realistic gaps
+                    if next_event in ['cart_add', 'purchase']:
+                        # These actions take longer
+                        event_time += timedelta(minutes=random.randint(2, 5))
                     else:
-                        current_event = 'view'
-                    
-                    # Increment time realistically
-                    event_time += timedelta(minutes=random.randint(1, 10))
+                        event_time += timedelta(minutes=random.randint(1, 3))
         
         return pd.DataFrame(events)
     
@@ -867,7 +909,7 @@ class RecentEcommerceDataGenerator:
         }
         return category_names.get(category_id, 'General')
     
-    def generate_review_text(self, rating, product_info, days_to_review):
+    def generate_review_text(self, rating, product_info):
         """Generate realistic review text based on rating and product info"""
         
         # Map category_id to category name
@@ -927,27 +969,6 @@ class RecentEcommerceDataGenerator:
             }
         }
 
-        # Time-based context phrases
-        time_context = {
-            'quick': [
-                "Just got this", "After quick testing", "First impression", 
-                "Day one review", "Initial thoughts"
-            ],
-            'short': [
-                "After a few days", "Short term use", "Early review", 
-                "Quick update", "First week thoughts"
-            ]
-        }
-
-        # Get category and time phrase
-        # Add time-based context phrases for recent reviews
-        time_phrases = {
-            'recent': [
-                "Just received", "Got this yesterday", "Ordered last week",
-                "Fresh out of the box", "First impression", "Early review"
-            ]
-        }
-
         # Select appropriate template and aspects based on rating
         if rating >= 4:
             template = random.choice(self.review_templates['positive'])
@@ -970,7 +991,7 @@ class RecentEcommerceDataGenerator:
 
     def generate_reviews(self, orders_df, order_items_df, products_df, customers_df):
         """Generate reviews with realistic patterns and sentiment"""
-        reviews_data = []
+        reviews = []
         review_id = 1 + self.id_offset
         
         # Review probability by customer segment
@@ -981,69 +1002,121 @@ class RecentEcommerceDataGenerator:
         }
         
         # Define rating distributions by price range
-        def get_rating_distribution(price):
+        def get_rating_distribution(price, is_new_customer):
             if price > 500:  # Expensive products
-                return [0.02, 0.03, 0.10, 0.35, 0.50]  # Higher expectations
+                base_dist = [0.02, 0.03, 0.10, 0.35, 0.50]  # Higher expectations
             elif price > 100:  # Mid-range products
-                return [0.05, 0.10, 0.15, 0.40, 0.30]
+                base_dist = [0.05, 0.10, 0.15, 0.40, 0.30]
             else:  # Budget products
-                return [0.10, 0.15, 0.25, 0.30, 0.20]  # More varied ratings
+                base_dist = [0.10, 0.15, 0.25, 0.30, 0.20]  # More varied ratings
+                
+            # New customers tend to give more extreme ratings
+            if is_new_customer:
+                # Increase weights of 1 and 5 star ratings
+                base_dist[0] *= 1.5
+                base_dist[4] *= 1.5
+                # Normalize weights
+                total = sum(base_dist)
+                base_dist = [w/total for w in base_dist]
+                
+            return base_dist
         
         # Define time patterns for review submission
-        def get_review_delay():
-            # Most reviews come within first week for recent data
-            delays = [1, 2, 3, 4, 5, 6, 7]
-            weights = [0.3, 0.2, 0.15, 0.1, 0.1, 0.1, 0.05]
+        def get_review_delay(is_new_customer):
+            if is_new_customer:
+                delays = [1, 2, 3, 4, 5, 6, 7, 14]  # New customers review more quickly
+                weights = [0.35, 0.25, 0.15, 0.1, 0.05, 0.05, 0.03, 0.02]
+            else:
+                delays = [1, 2, 3, 4, 5, 6, 7, 14, 21, 30]
+                weights = [0.3, 0.2, 0.15, 0.1, 0.05, 0.05, 0.05, 0.05, 0.03, 0.02]
             return random.choices(delays, weights=weights)[0]
         
-        for _, order in orders_df.iterrows():
-            if order['status'] != 'Delivered':
-                continue
+        # Try to load historic customers
+        try:
+            root_dir = os.getcwd()
+            historic_customers_file = os.path.join(root_dir, "generated_historic_data", "customers.csv")
+            historic_df = pd.read_csv(historic_customers_file)
+            
+            # Combine with new customers
+            all_customers = pd.concat([customers_df, historic_df], ignore_index=True)
+        except Exception as e:
+            print(f"Could not load historic customers for reviews: {str(e)}")
+            print("Using only new customers for reviews")
+            all_customers = customers_df
+        
+        # Process only delivered orders
+        delivered_orders = orders_df[orders_df['status'] == 'Delivered']
+        
+        for _, order in delivered_orders.iterrows():
+            try:
+                # Find customer in combined customer dataframe
+                customer = all_customers[all_customers['customer_id'] == order['customer_id']].iloc[0]
                 
-            customer = customers_df[customers_df['customer_id'] == order['customer_id']].iloc[0]
-            order_items = order_items_df[order_items_df['order_id'] == order['order_id']]
+                # Determine if customer is new or returning
+                is_new = customer['customer_id'] >= self.id_offset
+                
+                # Get order items
+                order_items = order_items_df[order_items_df['order_id'] == order['order_id']]
+                
+                # Determine customer segment and review probability
+                segment = 'High Value' if customer['annual_income'] > 80000 else \
+                        ('Mid Value' if customer['annual_income'] > 50000 else 'Low Value')
+                base_review_prob = review_prob.get(segment, 0.5)
+                
+                # New customers more likely to review
+                final_review_prob = base_review_prob * (1.3 if is_new else 1.0)
+                
+                if random.random() < final_review_prob:
+                    for _, item in order_items.iterrows():
+                        product = products_df[products_df['product_id'] == item['product_id']].iloc[0]
+                        
+                        # Get rating distribution based on product price and customer type
+                        rating_dist = get_rating_distribution(product['base_price'], is_new)
+                        review_score = random.choices(range(1, 6), weights=rating_dist)[0]
+                        
+                        # Generate review text with appropriate length
+                        review_length = "short" if random.random() < (0.6 if is_new else 0.3) else "long"
+                        
+                        # Get product details for review text
+                        product_name = (product['product_name'] if 'product_name' in product 
+                                    else product['name'] if 'name' in product 
+                                    else f"Product {product['product_id']}")
+                        
+                        review_text = self.generate_review_text(review_score, product_name, review_length)
+                        
+                        # Calculate review date with delay based on customer type
+                        review_delay = get_review_delay(is_new)
+                        review_date = pd.to_datetime(order['order_date']) + timedelta(days=review_delay)
+                        
+                        if review_date <= self.end_date:
+                            # More helpful votes for extreme ratings
+                            helpful_votes = np.random.poisson(2) if review_score in [1, 5] else \
+                                        np.random.poisson(1) if review_score != 3 else 0
+                            
+                            reviews.append({
+                                'review_id': review_id,
+                                'product_id': product['product_id'],
+                                'order_id': order['order_id'],
+                                'customer_id': customer['customer_id'],
+                                'review_score': review_score,
+                                'review_text': review_text,
+                                'review_date': review_date,
+                                'helpful_votes': helpful_votes,
+                                'verified_purchase': True,
+                                'created_at': review_date,
+                            })
+                            review_id += 1
             
-            # Determine customer segment and review probability
-            segment = 'High Value' if customer['annual_income'] > 80000 else ('Mid Value' if customer['annual_income'] > 50000 else 'Low Value')
-            review_probability = review_prob.get(segment, 0.5)
-            
-            if random.random() < review_probability:
-                for _, item in order_items.iterrows():
-                    product = products_df[products_df['product_id'] == item['product_id']].iloc[0]
-                    
-                    # Get rating distribution based on product price
-                    rating_dist = get_rating_distribution(product['base_price'])
-                    review_score = random.choices(range(1, 6), weights=rating_dist)[0]
-                    
-                    # Calculate review delay and date
-                    review_delay = get_review_delay()
-                    review_date = pd.to_datetime(order['order_date']) + timedelta(days=review_delay)
-                    
-                    # Generate review text with delay information
-                    review_text = self.generate_review_text(
-                        review_score,
-                        product,
-                        review_delay  # Pass the review_delay as days_to_review
-                    )
-                    
-                    if review_date <= self.end_date:
-                        reviews_data.append({
-                            'review_id': review_id,
-                            'product_id': product['product_id'],
-                            'order_id': order['order_id'],
-                            'customer_id': customer['customer_id'],
-                            'review_score': review_score,
-                            'review_text': review_text,
-                            'review_date': review_date,
-                            'helpful_votes': np.random.poisson(2) if review_score != 3 else np.random.poisson(1),
-                            'verified_purchase': True,
-                            'created_at': review_date
-                        })
-                        review_id += 1
+            except IndexError:
+                print(f"Warning: Customer {order['customer_id']} not found in customer data")
+                continue
+            except Exception as e:
+                print(f"Warning: Error processing order {order['order_id']}: {str(e)}")
+                continue
         
-        reviews_df = pd.DataFrame(reviews_data)
+        reviews_df = pd.DataFrame(reviews)
         
-        # Update product ratings
+        # Update product ratings in place
         for pid in products_df['product_id'].unique():
             product_reviews = reviews_df[reviews_df['product_id'] == pid]
             if len(product_reviews) > 0:
@@ -1052,9 +1125,69 @@ class RecentEcommerceDataGenerator:
                 products_df.loc[products_df['product_id'] == pid, 'review_count'] = \
                     len(product_reviews)
         
-        return reviews_df, products_df
+        # Return only the reviews DataFrame since we've updated products_df in place
+        return reviews_df
 
-    def generate_all_data(self, n_customers=1000, n_products=1000):
+    def generate_review_text(self, rating, product_name, length="short"):
+        """Generate realistic review text based on rating"""
+        positive_phrases = [
+            "Excellent product", "Great quality", "Highly recommend",
+            "Exceeded expectations", "Perfect fit", "Amazing value",
+            "Outstanding performance", "Very satisfied", "Fantastic purchase"
+        ]
+        
+        negative_phrases = [
+            "Disappointed", "Poor quality", "Not worth the price",
+            "Wouldn't recommend", "Didn't meet expectations", "Waste of money",
+            "Stopped working", "Frustrating experience", "Save your money"
+        ]
+        
+        neutral_phrases = [
+            "Okay product", "Decent quality", "As expected",
+            "Nothing special", "Gets the job done", "Average quality",
+            "Fair price", "Basic functionality", "Standard product"
+        ]
+        
+        if rating >= 4:
+            base_phrases = positive_phrases
+        elif rating <= 2:
+            base_phrases = negative_phrases
+        else:
+            base_phrases = neutral_phrases
+        
+        # Protect against None or empty product names
+        safe_product_name = str(product_name) if product_name else "This product"
+        
+        if length == "short":
+            review = f"{random.choice(base_phrases)}. {safe_product_name} {random.choice(['is', 'was'])} "
+            if rating >= 4:
+                review += random.choice(["great", "excellent", "fantastic", "very good"])
+            elif rating <= 2:
+                review += random.choice(["disappointing", "poor", "not good", "below average"])
+            else:
+                review += random.choice(["okay", "decent", "average", "fair"])
+        else:
+            phrases = random.sample(base_phrases, 2)
+            review = f"{phrases[0]}. {safe_product_name} {random.choice(['is', 'was'])} "
+            if rating >= 4:
+                review += random.choice(["great", "excellent", "fantastic", "very good"])
+            elif rating <= 2:
+                review += random.choice(["disappointing", "poor", "not good", "below average"])
+            else:
+                review += random.choice(["okay", "decent", "average", "fair"])
+            review += f". {phrases[1]}. "
+            review += random.choice([
+                "Would definitely buy again.",
+                "Not sure if I would buy again.",
+                "Might consider other options next time.",
+                "Looking forward to using it more.",
+                "Hope this helps other buyers.",
+                "Just wanted to share my experience."
+            ])
+        
+        return review.strip()
+
+    def generate_all_data(self, n_customers=200, n_products=50):
         """Generate all e-commerce data for the last 30 days"""
         print(f"Generating data for period: {self.start_date.date()} to {self.end_date.date()}")
         
@@ -1081,10 +1214,10 @@ class RecentEcommerceDataGenerator:
         orders_df, order_items_df = self.generate_orders(customers_df, products_df)
         
         print("Generating reviews...")
-        reviews_df, updated_products_df = self.generate_reviews(orders_df, order_items_df, products_df, customers_df)
+        reviews_df = self.generate_reviews(orders_df, order_items_df, products_df, customers_df)
         
         print("Generating customer interactions...")
-        interactions_df = self.generate_interactions(customers_df, updated_products_df)
+        interactions_df = self.generate_interactions(customers_df, products_df)
         
         # Ensure all date columns are datetime
         date_columns = {
@@ -1100,7 +1233,7 @@ class RecentEcommerceDataGenerator:
         
         data_dict = {
             'customers': customers_df,
-            'products': updated_products_df,
+            'products': products_df,
             'categories': categories_df,
             'subcategories': subcategories_df,
             'orders': orders_df,
